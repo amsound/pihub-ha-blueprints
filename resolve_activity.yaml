@@ -154,7 +154,7 @@ actions:
   # Optional debug snapshot
   - if:
       - condition: template
-        value_template: "{{ bool(debug_logs) }}"
+        value_template: "{{ debug_logs | default(false) }}"
     then:
       - action: logbook.log
         data:
