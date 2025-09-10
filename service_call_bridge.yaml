@@ -1,0 +1,102 @@
+blueprint:
+  name: PiHub – Service Call Bridge
+  description: >
+    Listens for service-call JSON from a Pi on MQTT and calls the corresponding
+    Home Assistant service. Entity IDs coming from the Pi can be remapped via
+    a small lookup table so you keep your HA entity names tidy.
+  domain: automation
+  source_url: https://example.local/pihub_service_call_bridge  # optional
+
+  input:
+    service_call_topic:
+      name: MQTT service-call topic
+      description: >
+        Full topic to listen on. Example:
+        pihub/living_room/ha/service/call
+      default: pihub/living_room/ha/service/call
+      selector:
+        text:
+
+    speakers:
+      name: Speakers (media_player)
+      selector:
+        entity:
+          domain: media_player
+
+    activity_select:
+      name: Activity input_select
+      selector:
+        entity:
+          domain: input_select
+
+    radio_script:
+      name: Radio script
+      selector:
+        entity:
+          domain: script
+
+    mute_script:
+      name: Mute/Unmute script
+      selector:
+        entity:
+          domain: script
+
+mode: parallel
+max: 50
+
+variables:
+  # Map short names (used by the Pi) → actual HA entity_ids (picked in the UI)
+  ents:
+    speakers: !input speakers
+    activity_select: !input activity_select
+    radio_script: !input radio_script
+    mute_script: !input mute_script
+
+triggers:
+  - platform: mqtt
+    topic: !input service_call_topic
+
+conditions: []
+
+actions:
+  - variables:
+      obj: "{{ trigger.payload_json | default({}) }}"
+
+  - condition: template
+    value_template: >
+      {{ obj is mapping
+         and (obj.domain | default('') | string | length) > 0
+         and (obj.service | default('') | string | length) > 0 }}
+
+  - variables:
+      data0: "{{ obj.data | default({}) }}"
+      entity_id_in: >-
+        {% if 'entity_id' in data0 %}{{ data0.entity_id }}{% else %}{{ None }}{% endif %}
+
+      # Map entity_id values, preserving strings or lists
+      entity_id_mapped: >-
+        {# string -> string #}
+        {% if entity_id_in is string %}
+          {{ ents.get(entity_id_in, entity_id_in) }}
+        {# list -> list of strings #}
+        {% elif entity_id_in is sequence and (entity_id_in is not string) %}
+          [{% for item in entity_id_in %}"{{ ents.get(item, item) }}"{% if not loop.last %},{% endif %}{% endfor %}]
+        {% else %}
+          {{ None }}
+        {% endif %}
+
+      call_data: >-
+        {%- set base = data0 | default({}) -%}
+        {%- if entity_id_mapped is not none -%}
+          {{ base | combine({'entity_id': entity_id_mapped}) }}
+        {%- else -%}
+          {{ base }}
+        {%- endif -%}
+
+  - action: "{{ obj.domain }}.{{ obj.service }}"
+    data: "{{ call_data }}"
+
+  - action: logbook.log
+    data:
+      name: PiHub MQTT
+      message: "Called {{ obj.domain }}.{{ obj.service }} with {{ call_data }}"
