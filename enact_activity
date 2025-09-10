@@ -15,41 +15,36 @@ blueprint:
       default: living_room
     activity_input_select:
       name: Activity input_select (current)
-      description: The input_select that holds the current activity for this room
       selector:
         entity:
           domain: input_select
     last_run_input_select:
       name: Last-run input_select
-      description: The input_select that stores the last run activity for this room
       selector:
         entity:
           domain: input_select
 
 mode: single
 
-# ──────────────────────────────────────────────────────────────────────────────
-# TRIGGER
-# ──────────────────────────────────────────────────────────────────────────────
 triggers:
   - trigger: state
     entity_id: !input activity_input_select
 
-# ──────────────────────────────────────────────────────────────────────────────
-# VARIABLES
-# ──────────────────────────────────────────────────────────────────────────────
 variables:
+  # bind inputs to plain variables (so Jinja can use them)
   room: !input room
-  resolved: "{{ trigger.to_state.state }}"
-  last_run: "{{ states(!input last_run_input_select) }}"
+  activity_select: !input activity_input_select
+  last_run_select: !input last_run_input_select
+
+  # templated vars
+  resolved: "{{ states(activity_select) }}"
+  last_run: "{{ states(last_run_select) }}"
+
   # Script entity_ids derived from naming convention
   script_watch:  "{{ 'script.' ~ room ~ '_watch' }}"
   script_listen: "{{ 'script.' ~ room ~ '_listen' }}"
   script_power:  "{{ 'script.' ~ room ~ '_power_off' }}"
 
-# ──────────────────────────────────────────────────────────────────────────────
-# ACTIONS
-# ──────────────────────────────────────────────────────────────────────────────
 actions:
   - choose:
       - conditions:
