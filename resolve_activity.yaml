@@ -1,54 +1,67 @@
 blueprint:
   name: PiHub – Resolve Activity (room-agnostic)
   description: >
-    Resolves the target activity from PiHub intents (MQTT), TV on, and
-    Speakers source. Writes the decision to the room's activity input_select
-    only when it changes (to avoid flapping). Pair this with the PiHub Enactor blueprint.
+    Resolves the target activity from PiHub intents (MQTT), TV on, and Speakers
+    source. Writes to the room's Activity input_select only when it changes.
+    Pair with the PiHub Enactor blueprint, which should update Last Run.
   domain: automation
+
   input:
     activity_select:
       name: Room Activity input_select
-      description: input_select.<room>_activity
+      description: input_select.<room>_activity (this is the source of truth)
       selector:
         entity:
           domain: input_select
+
     last_run_select:
       name: Last Run input_select
-      description: input_select.<room>_last_run_activity (read only here)
+      description: input_select.<room>_last_run_activity (read-only here; Enactor updates it)
       selector:
         entity:
           domain: input_select
+
     mqtt_topic:
       name: MQTT intent topic
-      description: >
-        Full topic PiHub publishes to (e.g. pihub/living_room/activity).
-        Must be exact; cannot be templated.
+      description: Full topic PiHub publishes (e.g., pihub/living_room/activity)
       default: pihub/living_room/activity
-    tv_sensor:
-      name: (Optional) TV power binary_sensor
-      description: binary_sensor.<room>_tv that turns 'on' when the TV is on
-      default: ""
+
+    tv_entity:
+      name: TV entity (binary_sensor OR media_player)
+      description: >
+        Choose either a binary_sensor that is 'on' when TV is on, OR a media_player
+        representing the TV.
       selector:
-        entity:
-          domain: binary_sensor
-          multiple: false
-          include:
-            - domain: binary_sensor
+        entity: {}
+
+    tv_is_media_player:
+      name: TV entity is a media_player
+      description: >
+        If checked, TV is considered ON when state is not 'off'/'standby'/'unknown'/'unavailable'.
+        If unchecked, it is treated as a binary_sensor that is 'on' when TV is on.
+      default: false
+      selector:
+        boolean: {}
+
     speakers_player:
-      name: (Optional) Speakers media_player
-      description: media_player.<room>_speakers (reads 'source' attribute)
-      default: ""
+      name: Speakers media_player
+      description: media_player.<room>_speakers (we read its 'source' attribute)
       selector:
         entity:
           domain: media_player
-          multiple: false
+
     speakers_source_value:
-      name: Speakers source value to mean "listen"
-      description: Exact string of the source when listening (e.g. Wifi)
+      name: Speakers source value for “listen”
+      description: Exact source string that means "listen" (e.g., Wifi)
       default: Wifi
+
+    room_label:
+      name: Room label (optional, for logs only)
+      description: A friendly room name (e.g., Living Room)
+      default: ""
+
     debug_logs:
       name: Debug log snapshots
-      description: Write a Logbook snapshot of decisions each time
       default: false
       selector:
         boolean: {}
@@ -61,45 +74,42 @@ triggers:
   - trigger: mqtt
     topic: !input mqtt_topic
 
-  # B) TV turned on (optional)
+  # B) Any TV state change (binary_sensor OR media_player)
   - trigger: state
-    entity_id: !input tv_sensor
-    to: "on"
-    enabled: "{{ iif((!input tv_sensor) != '', true, false) }}"
+    entity_id: !input tv_entity
 
-  # C) Speakers source changed to "Wifi" (or your value) (optional)
+  # C) Any Speakers source change
   - trigger: state
     entity_id: !input speakers_player
     attribute: source
-    to: !input speakers_source_value
-    enabled: "{{ iif((!input speakers_player) != '', true, false) }}"
 
 conditions: []
 
 variables:
   activity_select: !input activity_select
   last_run_select: !input last_run_select
-  tv_sensor: !input tv_sensor
+  tv_entity: !input tv_entity
+  tv_is_media_player: !input tv_is_media_player
   speakers_player: !input speakers_player
   speakers_source_value: !input speakers_source_value
+  room_label: !input room_label
 
-  # Current states (lower-cased for comparison)
+  # Current states (lowercased for comparisons)
   current_activity: "{{ states(activity_select) | lower }}"
   last_run: "{{ states(last_run_select) | lower }}"
 
+  # TV ON logic: media_player => ON if not in off/standby/unknown/unavailable; binary_sensor => ON when 'on'
+  tv_state: "{{ states(tv_entity) | lower }}"
   tv_on: >-
-    {% if tv_sensor %}
-      {{ is_state(tv_sensor, 'on') }}
+    {% if tv_is_media_player %}
+      {{ tv_state not in ['off','standby','unknown','unavailable'] }}
     {% else %}
-      false
+      {{ tv_state == 'on' }}
     {% endif %}
 
+  # Speakers source
   speaker_source: >-
-    {% if speakers_player %}
-      {{ (state_attr(speakers_player, 'source') | default('') | string).strip() }}
-    {% else %}
-      ''
-    {% endif %}
+    {{ (state_attr(speakers_player, 'source') | default('') | string).strip() }}
 
   speaker_is_listen: "{{ speaker_source == speakers_source_value }}"
 
@@ -111,11 +121,11 @@ variables:
       none
     {% endif %}
 
-  # Decision rules:
-  # 1) If Pi sends an explicit intent, honor it (watch|listen|power_off).
-  # 2) Else, if speakers source matches, prefer 'listen' (unless we just ran listen).
-  # 3) Else, if TV is on, prefer 'watch' (unless we just ran watch).
-  # 4) Else, keep current activity.
+  # Decision rules (matches your model):
+  # 1) Explicit Pi intent wins if one of watch|listen|power_off
+  # 2) Else speakers source implies 'listen' (unless we just ran listen)
+  # 3) Else TV on implies 'watch' (unless we just ran watch)
+  # 4) Else keep current activity
   resolved_activity: >-
     {% set intent = remote_intent %}
     {% if intent in ['watch','listen','power_off'] %}
@@ -129,24 +139,27 @@ variables:
     {% endif %}
 
 actions:
+  # Only write when different (prevents flapping)
   - choose:
       - conditions:
           - condition: template
             value_template: "{{ resolved_activity != current_activity }}"
         sequence:
-          - alias: Update activity_select to resolved
-            action: input_select.select_option
+          - action: input_select.select_option
             target:
               entity_id: !input activity_select
             data:
               option: "{{ resolved_activity }}"
+
+  # Optional debug snapshot
   - if:
       - condition: template
         value_template: "{{ bool(debug_logs) }}"
     then:
       - action: logbook.log
         data:
-          name: PiHub Resolver
+          name: >-
+            {{ 'PiHub Resolver' ~ ( ' (' ~ room_label ~ ')' if room_label else '' ) }}
           message: >-
             current={{ current_activity }}, last_run={{ last_run }},
             tv_on={{ tv_on }}, speaker_source='{{ speaker_source }}',
