@@ -1,0 +1,88 @@
+blueprint:
+  name: PiHub – Enact Activity (room-agnostic)
+  description: >
+    Enact watch/listen/power_off whenever the room's activity input_select changes.
+    Updates the room's last_run input_select to the same value.
+    Scripts are resolved by naming convention:
+      - script.<room>_watch
+      - script.<room>_listen
+      - script.<room>_power_off
+  domain: automation
+  input:
+    room:
+      name: Room key
+      description: Lowercase room id used in entity names (e.g. living_room)
+      default: living_room
+    activity_input_select:
+      name: Activity input_select (current)
+      description: The input_select that holds the current activity for this room
+      selector:
+        entity:
+          domain: input_select
+    last_run_input_select:
+      name: Last-run input_select
+      description: The input_select that stores the last run activity for this room
+      selector:
+        entity:
+          domain: input_select
+
+mode: single
+
+# ──────────────────────────────────────────────────────────────────────────────
+# TRIGGER
+# ──────────────────────────────────────────────────────────────────────────────
+triggers:
+  - trigger: state
+    entity_id: !input activity_input_select
+
+# ──────────────────────────────────────────────────────────────────────────────
+# VARIABLES
+# ──────────────────────────────────────────────────────────────────────────────
+variables:
+  room: !input room
+  resolved: "{{ trigger.to_state.state }}"
+  last_run: "{{ states(!input last_run_input_select) }}"
+  # Script entity_ids derived from naming convention
+  script_watch:  "{{ 'script.' ~ room ~ '_watch' }}"
+  script_listen: "{{ 'script.' ~ room ~ '_listen' }}"
+  script_power:  "{{ 'script.' ~ room ~ '_power_off' }}"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# ACTIONS
+# ──────────────────────────────────────────────────────────────────────────────
+actions:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ resolved == 'watch' }}"
+        sequence:
+          - service: script.turn_on
+            target:
+              entity_id: "{{ script_watch }}"
+      - conditions:
+          - condition: template
+            value_template: "{{ resolved == 'listen' }}"
+        sequence:
+          - service: script.turn_on
+            target:
+              entity_id: "{{ script_listen }}"
+      - conditions:
+          - condition: template
+            value_template: "{{ resolved == 'power_off' }}"
+        sequence:
+          - service: script.turn_on
+            target:
+              entity_id: "{{ script_power }}"
+
+  - alias: Update last_run
+    service: input_select.select_option
+    target:
+      entity_id: !input last_run_input_select
+    data:
+      option: "{{ resolved }}"
+
+  - alias: Log enact
+    service: logbook.log
+    data:
+      name: PiHub Enactor
+      message: "Ran script for '{{ resolved }}' (room={{ room }})"
