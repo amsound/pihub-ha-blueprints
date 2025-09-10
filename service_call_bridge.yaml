@@ -1,80 +1,61 @@
 blueprint:
-  name: PiHub – Service Call Bridge
+  name: PiHub → Home Assistant service-call bridge
   description: >
-    Listens for service-call JSON from a Pi on MQTT and calls the corresponding
-    Home Assistant service. Entity IDs coming from the Pi can be remapped via
-    a small lookup table so you keep your HA entity names tidy.
+    Subscribes to a PiHub MQTT service-call topic and forwards calls to HA services.
+    Lets you provide a per-room entity mapping (so the Pi can send logical names
+    which get mapped to real entity_ids in HA).
   domain: automation
-  source_url: https://example.local/pihub_service_call_bridge  # optional
+  source_url: https://example.local/blueprints/pihub/pihub_service_call_bridge.yaml
 
   input:
-    service_call_topic:
-      name: MQTT service-call topic
-      description: >
-        Full topic to listen on. Example:
-        pihub/living_room/ha/service/call
-      default: pihub/living_room/ha/service/call
+    mqtt_topic:
+      name: MQTT topic (service call)
+      description: Full topic Pi publishes to, e.g. pihub/living_room/ha/service/call
       selector:
         text:
 
-    speakers:
-      name: Speakers (media_player)
+    ents:
+      name: Entity map (optional)
+      description: >
+        Mapping of logical names → HA entity_ids. If the Pi sends
+        {"data": {"entity_id": "speakers"}}, this map turns it into
+        media_player.living_room_speakers_unified (or a list of strings).
+      default: {}
       selector:
-        entity:
-          domain: media_player
+        object:
 
-    activity_select:
-      name: Activity input_select
+    logbook_name:
+      name: Logbook name
+      default: PiHub MQTT
       selector:
-        entity:
-          domain: input_select
-
-    radio_script:
-      name: Radio script
-      selector:
-        entity:
-          domain: script
-
-    mute_script:
-      name: Mute/Unmute script
-      selector:
-        entity:
-          domain: script
+        text:
 
 mode: parallel
 max: 50
 
 variables:
-  # Map short names (used by the Pi) → actual HA entity_ids (picked in the UI)
-  ents:
-    speakers: !input speakers
-    activity_select: !input activity_select
-    radio_script: !input radio_script
-    mute_script: !input mute_script
+  ents: !input ents
+  logbook_name: !input logbook_name
 
-triggers:
+trigger:
   - platform: mqtt
-    topic: !input service_call_topic
+    topic: !input mqtt_topic
 
-conditions: []
+condition: []
 
-actions:
+action:
   - variables:
       obj: "{{ trigger.payload_json | default({}) }}"
-
   - condition: template
     value_template: >
       {{ obj is mapping
          and (obj.domain | default('') | string | length) > 0
          and (obj.service | default('') | string | length) > 0 }}
-
   - variables:
       data0: "{{ obj.data | default({}) }}"
-      entity_id_in: >-
+      entity_id_in: >
         {% if 'entity_id' in data0 %}{{ data0.entity_id }}{% else %}{{ None }}{% endif %}
-
-      # Map entity_id values, preserving strings or lists
-      entity_id_mapped: >-
+      entity_id_mapped: >
         {# string -> string #}
         {% if entity_id_in is string %}
           {{ ents.get(entity_id_in, entity_id_in) }}
@@ -84,19 +65,16 @@ actions:
         {% else %}
           {{ None }}
         {% endif %}
-
-      call_data: >-
+      call_data: >
         {%- set base = data0 | default({}) -%}
         {%- if entity_id_mapped is not none -%}
           {{ base | combine({'entity_id': entity_id_mapped}) }}
         {%- else -%}
           {{ base }}
         {%- endif -%}
-
-  - action: "{{ obj.domain }}.{{ obj.service }}"
+  - service: "{{ obj.domain }}.{{ obj.service }}"
     data: "{{ call_data }}"
-
-  - action: logbook.log
+  - service: logbook.log
     data:
-      name: PiHub MQTT
+      name: "{{ logbook_name }}"
       message: "Called {{ obj.domain }}.{{ obj.service }} with {{ call_data }}"
