@@ -1,5 +1,5 @@
 blueprint:
-  name: PiHub → Home Assistant service-call bridge
+  name: PiHub - Home Assistant service-call bridge
   description: >
     Subscribes to a PiHub MQTT service-call topic and forwards calls to HA services.
     Lets you provide a per-room entity mapping (so the Pi can send logical names
