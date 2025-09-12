@@ -1,5 +1,5 @@
 blueprint:
-  name: PiHub - Trigger Apple TV Power via MQTT
+  name: PiHub - MQTT Apple TV Power
   description: >
     Publish Apple TV power commands to a room's PiHub.
     Sends either pihub/<room>/cmd/atv/on or .../off (QoS 1, retain false).
@@ -15,8 +15,9 @@ blueprint:
       selector:
         select:
           options:
-            - on
-            - off
+            - "on"
+            - "off"
+      default: "on"
 
 sequence:
   - service: mqtt.publish
