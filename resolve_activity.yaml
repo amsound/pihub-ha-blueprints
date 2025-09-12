@@ -31,19 +31,12 @@ blueprint:
         entity:
           domain: binary_sensor
 
-    speakers_player:
-      name: Speakers media_player
-      description: Media player whose 'source' attribute becomes 'Wifi' for streaming
+    speakers_wifi_sensor:
+      name: Speakers Wifi binary_sensor
+      description: Binary sensor that is 'on' when speakers are streaming via Wifi
       selector:
         entity:
-          domain: media_player
-
-    speakers_wifi_value:
-      name: Speakers "Wifi" source value
-      description: Exact text that indicates Wifi/streaming on your speakers
-      default: Wifi
-      selector:
-        text:
+          domain: binary_sensor
 
     # PiHub intent topic
     mqtt_topic:
@@ -78,9 +71,8 @@ triggers:
 
   # Strict "listen" push: only when speakers source becomes exactly Wifi
   - trigger: state
-    entity_id: !input speakers_player
-    attribute: source
-    to: !input speakers_wifi_value
+    entity_id: !input speakers_wifi_sensor
+    to: "on"
 
   # Strong intents from PiHub (watch|listen|power_off)
   - trigger: mqtt
