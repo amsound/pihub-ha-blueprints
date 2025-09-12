@@ -2,8 +2,8 @@ blueprint:
   name: PiHub – Resolve Activity (watch/listen/power_off)
   description: >
     Resolves the room activity from (a) MQTT intents from PiHub,
-    (b) TV power-on, and (c) Speakers source == Wifi. Writes the resolved
-    value to your Activity input_select, but only when it actually changes.
+    (b) TV power-on (binary_sensor), and (c) Speakers Wifi binary_sensor.
+    Writes the resolved value to your Activity input_select, but only when it changes.
   domain: automation
   source_url: https://github.com/amsound/pihub-remote
 
@@ -63,19 +63,19 @@ mode: single
 # ──────────────────────────────────────────────────────────────────────────────
 # Triggers
 # ──────────────────────────────────────────────────────────────────────────────
-triggers:
+trigger:
   # Strict "watch" push: only when TV flips to on
-  - trigger: state
+  - platform: state
     entity_id: !input tv_sensor
     to: "on"
 
-  # Strict "listen" push: only when speakers source becomes exactly Wifi
-  - trigger: state
+  # Strict "listen" push: when speakers Wifi sensor turns on
+  - platform: state
     entity_id: !input speakers_wifi_sensor
     to: "on"
 
   # Strong intents from PiHub (watch|listen|power_off)
-  - trigger: mqtt
+  - platform: mqtt
     topic: !input mqtt_topic
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -86,8 +86,7 @@ variables:
   i_activity: !input activity_select
   i_last_run: !input last_run_select
   i_tv: !input tv_sensor
-  i_spk: !input speakers_player
-  i_wifi: !input speakers_wifi_value
+  i_spk_wifi: !input speakers_wifi_sensor
   i_topic: !input mqtt_topic
   i_room: !input room_label
   i_debug: !input debug_logs
@@ -98,7 +97,7 @@ variables:
 
   # Which trigger fired
   trig_is_tv: "{{ trigger.platform == 'state' and trigger.entity_id == i_tv }}"
-  trig_is_speakers: "{{ trigger.platform == 'state' and trigger.entity_id == i_spk }}"
+  trig_is_speakers: "{{ trigger.platform == 'state' and trigger.entity_id == i_spk_wifi }}"
   trig_is_mqtt: "{{ trigger.platform == 'mqtt' }}"
 
   # Strong intent from PiHub (only on MQTT)
@@ -111,8 +110,7 @@ variables:
 
   # Sensor snapshots
   tv_on: "{{ is_state(i_tv, 'on') }}"
-  speaker_source: "{{ (state_attr(i_spk, 'source') | default('') | string).strip() }}"
-  speaker_wifi: "{{ speaker_source == i_wifi }}"
+  speaker_wifi: "{{ is_state(i_spk_wifi, 'on') }}"
 
   # Resolution:
   # 1) MQTT intent wins; 2) speaker push -> listen; 3) TV push -> watch; 4) otherwise keep current
@@ -130,7 +128,7 @@ variables:
 # ──────────────────────────────────────────────────────────────────────────────
 # Actions
 # ──────────────────────────────────────────────────────────────────────────────
-actions:
+action:
   # Optional debug snapshot
   - if: "{{ i_debug | bool }}"
     then:
@@ -140,7 +138,7 @@ actions:
           message: >
             from={{ remote_activity }} → to={{ resolved }}
             (intent={{ intent }}, tv_on={{ tv_on }},
-            speaker_source='{{ speaker_source }}',
+            speaker_wifi={{ speaker_wifi }},
             last_run={{ last_run }})
 
   # Only write when actually changing & valid
