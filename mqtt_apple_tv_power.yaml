@@ -17,7 +17,6 @@ blueprint:
           options:
             - "on"
             - "off"
-      default: "on"
 
 sequence:
   - service: mqtt.publish
