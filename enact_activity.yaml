@@ -26,7 +26,7 @@ blueprint:
 
 mode: single
 
-triggers:
+trigger:
   - trigger: state
     entity_id: !input activity_input_select
 
@@ -45,7 +45,7 @@ variables:
   script_listen: "{{ 'script.' ~ room ~ '_listen' }}"
   script_power:  "{{ 'script.' ~ room ~ '_power_off' }}"
 
-actions:
+action:
   - choose:
       - conditions:
           - condition: template
