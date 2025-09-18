@@ -7,73 +7,73 @@ blueprint:
   domain: automation
   source_url: https://github.com/amsound/pihub-remote
 
-input:
-  # ───── Section: PiHub & Sensor Inputs ─────
-  pihub_inputs:
-    name: "📡 PiHub & Sensor Inputs"
-    description: "Inputs used to detect activity in the room."
-    selector:
-      section:
-
-  mqtt_topic:
-    name: PiHub Activity Topic (MQTT)
-    description: Topic where PiHub publishes intents (e.g. pihub/<room>/activity)
-    selector:
-      text:
-    section: pihub_inputs
-
-  tv_sensor:
-    name: TV Power Sensor
-    description: Binary sensor that turns 'on' when the TV is on
-    selector:
-      entity:
-        domain: binary_sensor
-    section: pihub_inputs
-
-  speakers_wifi_sensor:
-    name: Speakers WiFi Sensor
-    description: Binary sensor that is 'on' when speakers are streaming via WiFi
-    selector:
-      entity:
-        domain: binary_sensor
-    section: pihub_inputs
-
-  # ───── Section: Misc Settings ─────
-  misc_settings:
-    name: "⚙️ Misc Settings"
-    description: "Other configuration settings used for control and logging."
-    selector:
-      section:
-
-  activity_select:
-    name: Activity Select to Update
-    description: Input select that represents the current room activity
-    selector:
-      entity:
-        domain: input_select
-    section: misc_settings
-
-  last_run_select:
-    name: Last-ran Activity to Compare
-    description: Stores the last activity that was enacted
-    selector:
-      entity:
-        domain: input_select
-    section: misc_settings
-
-  room_label:
-    name: Room Label (for Logging)
-    default: Living Room
-    selector:
-      text:
-    section: misc_settings
-
-  debug_logs:
-    name: Debug Logging
-    default: false
-    selector:
-      boolean:
-    section: misc_settings
+  input:
+    # ───── Section: PiHub & Sensor Inputs ─────
+    pihub_inputs:
+      name: "📡 PiHub & Sensor Inputs"
+      description: "Inputs used to detect activity in the room."
+      selector:
+        section:
+  
+    mqtt_topic:
+      name: PiHub Activity Topic (MQTT)
+      description: Topic where PiHub publishes intents (e.g. pihub/<room>/activity)
+      selector:
+        text:
+      section: pihub_inputs
+  
+    tv_sensor:
+      name: TV Power Sensor
+      description: Binary sensor that turns 'on' when the TV is on
+      selector:
+        entity:
+          domain: binary_sensor
+      section: pihub_inputs
+  
+    speakers_wifi_sensor:
+      name: Speakers WiFi Sensor
+      description: Binary sensor that is 'on' when speakers are streaming via WiFi
+      selector:
+        entity:
+          domain: binary_sensor
+      section: pihub_inputs
+  
+    # ───── Section: Misc Settings ─────
+    misc_settings:
+      name: "⚙️ Misc Settings"
+      description: "Other configuration settings used for control and logging."
+      selector:
+        section:
+  
+    activity_select:
+      name: Activity Select to Update
+      description: Input select that represents the current room activity
+      selector:
+        entity:
+          domain: input_select
+      section: misc_settings
+  
+    last_run_select:
+      name: Last-ran Activity to Compare
+      description: Stores the last activity that was enacted
+      selector:
+        entity:
+          domain: input_select
+      section: misc_settings
+  
+    room_label:
+      name: Room Label (for Logging)
+      default: Living Room
+      selector:
+        text:
+      section: misc_settings
+  
+    debug_logs:
+      name: Debug Logging
+      default: false
+      selector:
+        boolean:
+      section: misc_settings
 
 
 mode: single
