@@ -1,0 +1,170 @@
+blueprint:
+  name: PiHub – Resolve Activity (watch/listen/power_off)
+  description: >
+    Resolves the room activity from (a) MQTT intents from PiHub,
+    (b) TV power-on (binary_sensor), and (c) Speakers Wifi binary_sensor.
+    Writes the resolved value to your Activity input_select, but only when it changes.
+  domain: automation
+  source_url: https://github.com/amsound/pihub-remote
+
+input:
+  # ───── Section: PiHub & Sensor Inputs ─────
+  pihub_inputs:
+    name: "📡 PiHub & Sensor Inputs"
+    description: "Inputs used to detect activity in the room."
+    selector:
+      section:
+
+  mqtt_topic:
+    name: PiHub Activity Topic (MQTT)
+    description: Topic where PiHub publishes intents (e.g. pihub/<room>/activity)
+    selector:
+      text:
+    section: pihub_inputs
+
+  tv_sensor:
+    name: TV Power Sensor
+    description: Binary sensor that turns 'on' when the TV is on
+    selector:
+      entity:
+        domain: binary_sensor
+    section: pihub_inputs
+
+  speakers_wifi_sensor:
+    name: Speakers WiFi Sensor
+    description: Binary sensor that is 'on' when speakers are streaming via WiFi
+    selector:
+      entity:
+        domain: binary_sensor
+    section: pihub_inputs
+
+  # ───── Section: Misc Settings ─────
+  misc_settings:
+    name: "⚙️ Misc Settings"
+    description: "Other configuration settings used for control and logging."
+    selector:
+      section:
+
+  activity_select:
+    name: Activity Select to Update
+    description: Input select that represents the current room activity
+    selector:
+      entity:
+        domain: input_select
+    section: misc_settings
+
+  last_run_select:
+    name: Last-ran Activity to Compare
+    description: Stores the last activity that was enacted
+    selector:
+      entity:
+        domain: input_select
+    section: misc_settings
+
+  room_label:
+    name: Room Label (for Logging)
+    default: Living Room
+    selector:
+      text:
+    section: misc_settings
+
+  debug_logs:
+    name: Debug Logging
+    default: false
+    selector:
+      boolean:
+    section: misc_settings
+
+
+mode: single
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Triggers
+# ──────────────────────────────────────────────────────────────────────────────
+trigger:
+  # Strict "watch" push: only when TV flips to on
+  - platform: state
+    entity_id: !input tv_sensor
+    to: "on"
+
+  # Strict "listen" push: when speakers Wifi sensor turns on
+  - platform: state
+    entity_id: !input speakers_wifi_sensor
+    to: "on"
+
+  # Strong intents from PiHub (watch|listen|power_off)
+  - platform: mqtt
+    topic: !input mqtt_topic
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Vars
+# ──────────────────────────────────────────────────────────────────────────────
+variables:
+  # Bind inputs to easy names for templates
+  i_activity: !input activity_select
+  i_last_run: !input last_run_select
+  i_tv: !input tv_sensor
+  i_spk_wifi: !input speakers_wifi_sensor
+  i_topic: !input mqtt_topic
+  i_room: !input room_label
+  i_debug: !input debug_logs
+
+  # Current + last
+  remote_activity: "{{ states(i_activity) | lower }}"
+  last_run: "{{ states(i_last_run) | lower }}"
+
+  # Which trigger fired
+  trig_is_tv: "{{ trigger.platform == 'state' and trigger.entity_id == i_tv }}"
+  trig_is_speakers: "{{ trigger.platform == 'state' and trigger.entity_id == i_spk_wifi }}"
+  trig_is_mqtt: "{{ trigger.platform == 'mqtt' }}"
+
+  # Strong intent from PiHub (only on MQTT)
+  intent: >
+    {% if trig_is_mqtt %}
+      {{ (trigger.payload | default('') | string).lower() }}
+    {% else %}
+      none
+    {% endif %}
+
+  # Sensor snapshots
+  tv_on: "{{ is_state(i_tv, 'on') }}"
+  speaker_wifi: "{{ is_state(i_spk_wifi, 'on') }}"
+
+  # Resolution:
+  # 1) MQTT intent wins; 2) speaker push -> listen; 3) TV push -> watch; 4) otherwise keep current
+  resolved: >
+    {% if intent in ['watch','listen','power_off'] %}
+      {{ intent }}
+    {% elif trig_is_speakers and speaker_wifi and last_run != 'listen' %}
+      listen
+    {% elif trig_is_tv and tv_on and last_run != 'watch' %}
+      watch
+    {% else %}
+      {{ remote_activity }}
+    {% endif %}
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Actions
+# ──────────────────────────────────────────────────────────────────────────────
+action:
+  # Optional debug snapshot
+  - if: "{{ i_debug | bool }}"
+    then:
+      - action: logbook.log
+        data:
+          name: "{{ i_room }} – PiHub Resolve"
+          message: >
+            from={{ remote_activity }} → to={{ resolved }}
+            (intent={{ intent }}, tv_on={{ tv_on }},
+            speaker_wifi={{ speaker_wifi }},
+            last_run={{ last_run }})
+
+  # Only write when actually changing & valid
+  - condition: template
+    value_template: "{{ resolved in ['watch','listen','power_off'] and resolved != remote_activity }}"
+
+  - action: input_select.select_option
+    target:
+      entity_id: !input activity_select
+    data:
+      option: "{{ resolved }}"
