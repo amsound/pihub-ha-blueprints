@@ -3,7 +3,7 @@ blueprint:
   description: >
     Enact watch/listen/power_off whenever the room's activity input_select changes.
     Updates the room's last_run input_select to the same value.
-    Scripts are resolved by naming convention:
+    Scripts are resolved by naming convention and run as blocking:
       - script.<room>_watch
       - script.<room>_listen
       - script.<room>_power_off
@@ -11,15 +11,15 @@ blueprint:
   input:
     room:
       name: Room key
-      description: Lowercase room id used in entity names (e.g. living_room)
+      description: Lowercase room id used in entity names (e.g. living_room, kitchen)
       default: living_room
     activity_input_select:
-      name: Activity input_select (current)
+      name: Activity input_select (listen to)
       selector:
         entity:
           domain: input_select
     last_run_input_select:
-      name: Last-run input_select
+      name: Last-run input_select (update after running)
       selector:
         entity:
           domain: input_select
@@ -51,23 +51,20 @@ action:
           - condition: template
             value_template: "{{ resolved == 'watch' }}"
         sequence:
-          - service: script.turn_on
-            target:
-              entity_id: "{{ script_watch }}"
+          - alias: Run watch script
+            service: "{{ script_watch }}"
       - conditions:
           - condition: template
             value_template: "{{ resolved == 'listen' }}"
         sequence:
-          - service: script.turn_on
-            target:
-              entity_id: "{{ script_listen }}"
+          - alias: Run listen script
+            service: "{{ script_listen }}"
       - conditions:
           - condition: template
             value_template: "{{ resolved == 'power_off' }}"
         sequence:
-          - service: script.turn_on
-            target:
-              entity_id: "{{ script_power }}"
+          - alias: Run power off script
+            service: "{{ script_power }}"
 
   - alias: Update last_run
     service: input_select.select_option
