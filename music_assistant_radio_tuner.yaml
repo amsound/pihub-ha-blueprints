@@ -35,7 +35,9 @@ sequence:
   - variables:
       station_list_raw: !input station_list_string
       station_list: "{{ station_list_raw.split(',') | map('trim') | list }}"
-      index: "{{ states(index_helper) | int }}"
+      index_helper_entity: !input index_helper
+      media_player_entity: !input media_player
+      index: "{{ states(index_helper_entity) | int }}"
       total_stations: "{{ station_list | length }}"
   - choose:
       - conditions: "{{ station != '' and station in station_list }}"
@@ -64,7 +66,7 @@ sequence:
       - stop: "No valid station or action provided."
   - service: input_number.set_value
     target:
-      entity_id: !input index_helper
+      entity_id: "{{ index_helper_entity }}"
     data:
       value: "{{ new_index }}"
   - variables:
