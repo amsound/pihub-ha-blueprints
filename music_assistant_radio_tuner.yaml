@@ -33,7 +33,8 @@ blueprint:
 mode: single
 sequence:
   - variables:
-      station_list: "{{ station_list_string.split(',') | map('trim') | list }}"
+      station_list_raw: !input station_list_string
+      station_list: "{{ station_list_raw.split(',') | map('trim') | list }}"
       index: "{{ states(index_helper) | int }}"
       total_stations: "{{ station_list | length }}"
   - choose:
