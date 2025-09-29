@@ -1,0 +1,76 @@
+blueprint:
+  name: Music Assistant Radio Tuner
+  description: >
+    Tune Music Assistant radio stations by name or navigate next/prev with wrap-around.
+    Keeps index in an input_number helper. Self-contained: pass station list as a variable.
+  domain: script
+  input:
+    station_list_string:
+      name: Radio Station List
+      description: Comma-separated list of radio stations, in desired dial order.
+      default: "Jazz FM,Classic Rock,BBC Radio 1"
+    station:
+      name: Station Name (optional)
+      description: Set this to directly tune to a station by name.
+      default: ""
+    tune_action:
+      name: Tune Action (optional)
+      description: Set to 'next' or 'prev' to move on the station ladder.
+      default: ""
+    index_helper:
+      name: Index Helper
+      description: input_number entity to store the station index (must allow -1 as min).
+      selector:
+        entity:
+          domain: input_number
+    media_player:
+      name: Media Player
+      description: Media player entity from Music Assistant.
+      selector:
+        entity:
+          domain: media_player
+
+mode: single
+sequence:
+  - variables:
+      station_list: "{{ station_list_string.split(',') | map('trim') | list }}"
+      index: "{{ states(index_helper) | int }}"
+      total_stations: "{{ station_list | length }}"
+  - choose:
+      - conditions: "{{ station != '' and station in station_list }}"
+        sequence:
+          - variables:
+              new_index: "{{ station_list.index(station) }}"
+      - conditions: "{{ tune_action == 'next' }}"
+        sequence:
+          - variables:
+              new_index: >-
+                {% if index == -1 %}
+                  0
+                {% else %}
+                  {{ (index + 1) % total_stations }}
+                {% endif %}
+      - conditions: "{{ tune_action == 'prev' }}"
+        sequence:
+          - variables:
+              new_index: >-
+                {% if index == -1 %}
+                  {{ total_stations - 1 }}
+                {% else %}
+                  {{ (index - 1 + total_stations) % total_stations }}
+                {% endif %}
+    default:
+      - stop: "No valid station or action provided."
+  - service: input_number.set_value
+    target:
+      entity_id: !input index_helper
+    data:
+      value: "{{ new_index }}"
+  - variables:
+      selected_station: "{{ station_list[new_index] }}"
+  - service: music_assistant.play_media
+    data:
+      media_id: "{{ selected_station }}"
+      media_type: radio
+    target:
+      entity_id: !input media_player
