@@ -1,0 +1,62 @@
+blueprint:
+  name: Power Off - Room Independent
+  description: >
+    Power off the room by turning off the TV via MQTT and powering down speakers.
+    Also resets Music Assistant. Fully room-agnostic and idempotent.
+  domain: script
+  input:
+    tv_power_sensor:
+      name: TV Power Sensor
+      description:
+      selector:
+        entity:
+          domain: binary_sensor
+    speaker_media_player:
+      name: Speaker Media Player
+      description:
+      selector:
+        entity:
+          domain: media_player
+    room:
+      name: Room Name (for MQTT topic)
+      description: Used to construct MQTT topic pihub/<room>/cmd.
+      selector:
+        text:
+    payload_off:
+      name: Apple TV Power OFF Payload
+      description: MQTT payload to turn off the Apple TV (non-retained, QoS 1).
+      default: "macro:atv-off"
+      selector:
+        text:
+    reset_music_assistant_script:
+      name: Music Assistant Reset Script
+      description:
+      selector:
+        entity:
+          domain: script
+
+mode: single
+sequence:
+  - alias: Parallel Watch Off Actions
+    parallel:
+      - alias: Turn Off TV if On
+        choose:
+          - conditions:
+              - condition: state
+                entity_id: !input tv_power_sensor
+                state: "on"
+            sequence:
+              - action: mqtt.publish
+                data:
+                  topic: >
+                    {{ "pihub/" ~ (inputs.room | lower) ~ "/cmd" }}
+                  payload: !input payload_off
+                  qos: 1
+                  retain: false
+
+      - alias: Turn Off Speakers and Reset Music Assistant
+        sequence:
+          - action: media_player.turn_off
+            target:
+              entity_id: !input speaker_media_player
+          - action: !input reset_music_assistant_script
