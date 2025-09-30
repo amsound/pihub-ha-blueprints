@@ -7,19 +7,19 @@ blueprint:
   input:
     tv_power_sensor:
       name: TV Power Sensor
-      description: 
+      description: ""
       selector:
         entity:
           domain: binary_sensor
     speaker_media_player:
       name: Speaker Media Player
-      description: 
+      description: ""
       selector:
         entity:
           domain: media_player
     speaker_optical_sensor:
       name: Speaker Optical Input Sensor
-      description:
+      description: ""
       selector:
         entity:
           domain: binary_sensor
@@ -36,7 +36,7 @@ blueprint:
         text:
     reset_music_assistant_script:
       name: Music Assistant Reset Script
-      description:
+      description: ""
       selector:
         entity:
           domain: script
