@@ -1,0 +1,87 @@
+blueprint:
+  name: Watch Mode - Room Independent
+  description: >
+    Activates a watch mode by turning on a TV via MQTT and ensuring speaker input is set to Optical.
+    Only acts when necessary (idempotent). Room-specific via MQTT topic.
+  domain: script
+  input:
+    tv_power_sensor:
+      name: TV Power Sensor
+      description: Binary sensor showing TV status.
+      selector:
+        entity:
+          domain: binary_sensor
+    speaker_media_player:
+      name: Speaker Media Player
+      description: Room speakers
+      selector:
+        entity:
+          domain: media_player
+    speaker_optical_sensor:
+      name: Speaker Optical Input Sensor
+      description: Binary sensor that is ON when the speakers are set to Optical input.
+      selector:
+        entity:
+          domain: binary_sensor
+    room:
+      name: Room Name (for MQTT topic)
+      description: Used to construct MQTT topic pihub/<room>/cmd - snake_case e.g. living_room
+      selector:
+        text:
+    payload_on:
+      name: Apple TV Power ON Payload
+      description: MQTT payload to turn on the Apple TV (non-retained, QoS 1).
+      default: "macro:atv-on"
+      selector:
+        text:
+    payload_off:
+      name: Apple TV Power OFF Payload
+      description: MQTT payload to turn off the Apple TV (non-retained, QoS 1).
+      default: "macro:atv-off"
+      selector:
+        text:
+
+mode: single
+sequence:
+  - alias: Parallel Watch Setup
+    parallel:
+      - alias: Power on TV if Off
+        choose:
+          - conditions:
+              - condition: state
+                entity_id: !input tv_power_sensor
+                state: "off"
+            sequence:
+              - service: mqtt.publish
+                data:
+                  topic: >
+                    {{ "pihub/" ~ (inputs.room | lower) ~ "/cmd" }}
+                  payload: !input payload_on
+                  qos: 1
+                  retain: false
+
+      - alias: Set Speaker Source to Optical if Needed
+        choose:
+          - conditions:
+              - condition: state
+                entity_id: !input speaker_optical_sensor
+                state: "off"
+            sequence:
+              - service: media_player.select_source
+                target:
+                  entity_id: !input speaker_media_player
+                data:
+                  source: "Opt"
+              - alias: Poll Speaker Until Optical Sensor is Active
+                repeat:
+                  sequence:
+                    - service: homeassistant.update_entity
+                      data:
+                        entity_id: !input speaker_media_player
+                    - delay:
+                        milliseconds: 500
+                  until:
+                    - condition: state
+                      entity_id: !input speaker_optical_sensor
+                      state: "on"
+
