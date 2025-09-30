@@ -1,0 +1,94 @@
+blueprint:
+  name: Listen Mode - Room Independent
+  description: >
+    Sets up room for listening to radio by turning off the TV, switching speaker to WiFi input,
+    and launching a Music Assistant radio stream. Only acts when necessary (idempotent).
+  domain: script
+  input:
+    tv_power_sensor:
+      name: TV Power Sensor
+      description: ""
+      selector:
+        entity:
+          domain: binary_sensor
+    speaker_media_player:
+      name: Speaker Media Player
+      description: ""
+      selector:
+        entity:
+          domain: media_player
+    speaker_wifi_sensor:
+      name: Speaker WiFi Input Sensor
+      description: ""
+      selector:
+        entity:
+          domain: binary_sensor
+    room:
+      name: Room Name (for MQTT topic)
+      description: Used to construct MQTT topic pihub/<room>/cmd.
+      selector:
+        text:
+    payload_off:
+      name: Apple TV Power OFF Payload
+      description: MQTT payload to turn off the Apple TV (non-retained, QoS 1).
+      default: "macro:atv-off"
+      selector:
+        text:
+    music_assistant_radio_tuner_script:
+      name: Music Assistant Radio Tuner Script
+      description: ""
+      selector:
+        entity:
+          domain: script
+    radio_station:
+      name: Radio Station
+      description: Name of the station to pass to the tuner script (e.g., "Classic FM").
+      selector:
+        text:
+
+mode: single
+sequence:
+  - alias: Parallel Listen Setup
+    parallel:
+      - alias: Turn Off TV if On
+        choose:
+          - conditions:
+              - condition: state
+                entity_id: !input tv_power_sensor
+                state: "on"
+            sequence:
+              - action: mqtt.publish
+                data:
+                  topic: >
+                    {{ "pihub/" ~ (inputs.room | lower) ~ "/cmd" }}
+                  payload: !input payload_off
+                  qos: 1
+                  retain: false
+
+      - alias: Start Radio if Not on WiFi Input
+        choose:
+          - conditions:
+              - condition: state
+                entity_id: !input speaker_wifi_sensor
+                state: "off"
+            sequence:
+              - action: !input music_assistant_radio_tuner_script
+                data:
+                  station: !input radio_station
+              - action: media_player.select_source
+                target:
+                  entity_id: !input speaker_media_player
+                data:
+                  source: "WiFi"
+              - alias: Poll Speaker Until WiFi Sensor is Active
+                repeat:
+                  sequence:
+                    - action: homeassistant.update_entity
+                      data:
+                        entity_id: !input speaker_media_player
+                    - delay:
+                        milliseconds: 500
+                  until:
+                    - condition: state
+                      entity_id: !input speaker_wifi_sensor
+                      state: "on"
