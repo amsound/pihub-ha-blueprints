@@ -34,12 +34,6 @@ blueprint:
       default: "macro:atv-on"
       selector:
         text:
-    payload_off:
-      name: Apple TV Power OFF Payload
-      description: MQTT payload to turn off the Apple TV (non-retained, QoS 1).
-      default: "macro:atv-off"
-      selector:
-        text:
 
 mode: single
 sequence:
