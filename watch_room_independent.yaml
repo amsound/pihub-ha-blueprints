@@ -34,6 +34,12 @@ blueprint:
       default: "macro:atv-on"
       selector:
         text:
+    reset_music_assistant_script:
+      name: Music Assistant Reset Script
+      description:
+      selector:
+        entity:
+          domain: script
 
 mode: single
 sequence:
@@ -46,7 +52,7 @@ sequence:
                 entity_id: !input tv_power_sensor
                 state: "off"
             sequence:
-              - service: mqtt.publish
+              - action: mqtt.publish
                 data:
                   topic: >
                     {{ "pihub/" ~ (inputs.room | lower) ~ "/cmd" }}
@@ -61,15 +67,16 @@ sequence:
                 entity_id: !input speaker_optical_sensor
                 state: "off"
             sequence:
-              - service: media_player.select_source
+              - action: media_player.select_source
                 target:
                   entity_id: !input speaker_media_player
                 data:
                   source: "Opt"
+              - action: !input reset_music_assistant_script
               - alias: Poll Speaker Until Optical Sensor is Active
                 repeat:
                   sequence:
-                    - service: homeassistant.update_entity
+                    - action: homeassistant.update_entity
                       data:
                         entity_id: !input speaker_media_player
                     - delay:
@@ -78,4 +85,3 @@ sequence:
                     - condition: state
                       entity_id: !input speaker_optical_sensor
                       state: "on"
-
