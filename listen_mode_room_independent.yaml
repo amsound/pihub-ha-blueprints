@@ -79,7 +79,7 @@ sequence:
                 target:
                   entity_id: !input speaker_media_player
                 data:
-                  source: "WiFi"
+                  source: "Wifi"
               - alias: Poll Speaker Until WiFi Sensor is Active
                 repeat:
                   sequence:
