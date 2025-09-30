@@ -56,8 +56,10 @@ mode: single
 variables:
   speaker: !input speaker_media_player
   ma_player: !input music_assistant_entity
-  listen_volume: "{{ states(!input listen_volume_level) | float }}"
-  watch_volume: "{{ states(!input watch_volume_level) | float }}"
+  listen_entity: !input listen_volume_level
+  watch_entity: !input watch_volume_level
+  listen_volume: "{{ states(listen_entity) | float }}"
+  watch_volume: "{{ states(watch_entity) | float }}"
 
 action:
   - choose:
