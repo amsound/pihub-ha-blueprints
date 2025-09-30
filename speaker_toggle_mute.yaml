@@ -1,0 +1,23 @@
+blueprint:
+  name: Speaker Toggle Mute - Room Independent
+  description: >
+    Toggles mute state of a speaker media player. Uses the current mute state and reverses it.
+    Room-independent and reusable for any media player.
+  domain: script
+  input:
+    speaker_media_player:
+      name: Speaker Media Player
+      description: ""
+      selector:
+        entity:
+          domain: media_player
+
+mode: single
+sequence:
+  - alias: Toggle Mute State
+    action: media_player.volume_mute
+    target:
+      entity_id: !input speaker_media_player
+    data:
+      is_volume_muted: >
+        {{ not state_attr(inputs.speaker_media_player, 'is_volume_muted') }}
