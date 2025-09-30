@@ -20,4 +20,4 @@ sequence:
       entity_id: !input speaker_media_player
     data:
       is_volume_muted: >
-        {{ not state_attr(inputs.speaker_media_player, 'is_volume_muted') }}
+        {{ not state_attr((!input speaker_media_player), 'is_volume_muted') }}
