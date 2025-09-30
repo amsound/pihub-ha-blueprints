@@ -13,11 +13,14 @@ blueprint:
           domain: media_player
 
 mode: single
+variables:
+  speaker_entity: !input speaker_media_player
+
 sequence:
   - alias: Toggle Mute State
     action: media_player.volume_mute
     target:
-      entity_id: !input speaker_media_player
+      entity_id: "{{ speaker_entity }}"
     data:
       is_volume_muted: >
-        {{ not state_attr((!input speaker_media_player), 'is_volume_muted') }}
+        {{ not state_attr(speaker_entity, 'is_volume_muted') }}
