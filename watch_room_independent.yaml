@@ -1,5 +1,5 @@
 blueprint:
-  name: Watch Mode - Room Independent
+  name: Watch - Room Independent
   description: >
     Activates a watch mode by turning on a TV via MQTT and ensuring speaker input is set to Optical.
     Only acts when necessary (idempotent). Room-specific via MQTT topic.
@@ -7,19 +7,19 @@ blueprint:
   input:
     tv_power_sensor:
       name: TV Power Sensor
-      description: Binary sensor showing TV status.
+      description: 
       selector:
         entity:
           domain: binary_sensor
     speaker_media_player:
       name: Speaker Media Player
-      description: Room speakers
+      description: 
       selector:
         entity:
           domain: media_player
     speaker_optical_sensor:
       name: Speaker Optical Input Sensor
-      description: Binary sensor that is ON when the speakers are set to Optical input.
+      description:
       selector:
         entity:
           domain: binary_sensor
