@@ -67,6 +67,8 @@ mode: single
 
 variables:
   speaker: !input speaker_media_player
+  watch_volume_value: !input watch_volume
+  listen_volume_value: !input listen_volume
 
 actions:
   - choose:
@@ -77,7 +79,7 @@ actions:
           - delay: "1"
           - condition: template
             value_template: >
-              {{ state_attr(speaker, 'volume_level') | float != (!input watch_volume) }}
+              {{ state_attr(speaker, 'volume_level') | float != watch_volume_value }}
           - action: media_player.volume_set
             target:
               entity_id: "{{ speaker }}"
@@ -97,7 +99,7 @@ actions:
             continue_on_timeout: false
           - condition: template
             value_template: >
-              {{ state_attr(speaker, 'volume_level') | float != (!input listen_volume) }}
+              {{ state_attr(speaker, 'volume_level') | float != listen_volume_value }}
           - action: media_player.volume_set
             target:
               entity_id: "{{ speaker }}"
