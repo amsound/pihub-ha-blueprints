@@ -45,9 +45,11 @@ blueprint:
 
 trigger:
   - platform: state
+    id: "opt_input"
     entity_id: !input speaker_opt_sensor
     to: "on"
   - platform: state
+    id: "wifi_input"
     entity_id: !input speaker_wifi_sensor
     to: "on"
 
@@ -55,7 +57,6 @@ mode: single
 
 variables:
   speaker: !input speaker_media_player
-  ma_player: !input music_assistant_entity
   listen_entity: !input listen_volume_level
   watch_entity: !input watch_volume_level
   listen_volume: "{{ states(listen_entity) | float }}"
@@ -65,10 +66,7 @@ action:
   - choose:
       - conditions:
           - condition: trigger
-            id: 0
-          - condition: state
-            entity_id: !input speaker_opt_sensor
-            state: "on"
+            triggers: ["opt_input"]
         sequence:
           - delay: "1"
           - condition: template
@@ -82,10 +80,7 @@ action:
 
       - conditions:
           - condition: trigger
-            id: 1
-          - condition: state
-            entity_id: !input speaker_wifi_sensor
-            state: "on"
+            triggers: ["wifi_input"]
         sequence:
           - delay: "1"
           - wait_for_trigger:
