@@ -84,14 +84,11 @@ actions:
       - conditions:
           - condition: trigger
             id: "wifi_input"
+          - condition: state
+            entity_id: !input music_assistant_entity
+            state: "playing"
         sequence:
-          - wait_for_trigger:
-              - platform: state
-                entity_id: !input music_assistant_entity
-                to: "playing"
-            timeout: "10"
-            continue_on_timeout: false
-          - action: media_player.volume_set
+          - service: media_player.volume_set
             target:
               entity_id: !input speaker_media_player
             data:
