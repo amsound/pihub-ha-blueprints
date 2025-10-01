@@ -63,7 +63,7 @@ sequence:
                     data:
                       topic: "{{ cmd_topic }}"
                       payload: !input payload_on
-                      qos: 1
+                      qos: "1"
                       retain: false
 
       - alias: Set Speaker Source to Optical if Needed
