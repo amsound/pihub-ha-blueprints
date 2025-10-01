@@ -33,7 +33,6 @@ blueprint:
     watch_volume:
       name: Watch Activity Volume Default
       description: ""
-      default: 0.48
       selector:
         number:
           min: 0
@@ -44,7 +43,6 @@ blueprint:
     listen_volume:
       name: Listen Activity Volume Default
       description: ""
-      default: 0.45
       selector:
         number:
           min: 0
