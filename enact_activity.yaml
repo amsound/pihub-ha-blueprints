@@ -1,18 +1,11 @@
 blueprint:
-  name: PiHub – Enact Activity (room-agnostic)
+  name: PiHub - Enact Activity (room-agnostic)
   description: >
     Enact watch/listen/power_off whenever the room's activity input_select changes.
     Updates the room's last_run input_select to the same value.
-    Scripts are resolved by naming convention and run as blocking:
-      - script.<room>_watch
-      - script.<room>_listen
-      - script.<room>_power_off
+    Uses user-selected scripts instead of naming convention.
   domain: automation
   input:
-    room:
-      name: Room key
-      description: Lowercase room id used in entity names (e.g. living_room, kitchen)
-      default: living_room
     activity_input_select:
       name: Activity input_select (listen to)
       selector:
@@ -23,27 +16,32 @@ blueprint:
       selector:
         entity:
           domain: input_select
+    watch_script:
+      name: Watch Script
+      selector:
+        entity:
+          domain: script
+    listen_script:
+      name: Listen Script
+      selector:
+        entity:
+          domain: script
+    power_off_script:
+      name: Power Off Script
+      selector:
+        entity:
+          domain: script
 
 mode: single
 
 trigger:
-  - trigger: state
+  - platform: state
     entity_id: !input activity_input_select
 
 variables:
-  # bind inputs to plain variables (so Jinja can use them)
-  room: !input room
   activity_select: !input activity_input_select
   last_run_select: !input last_run_input_select
-
-  # templated vars
   resolved: "{{ states(activity_select) }}"
-  last_run: "{{ states(last_run_select) }}"
-
-  # Script entity_ids derived from naming convention
-  script_watch:  "{{ 'script.' ~ room ~ '_watch' }}"
-  script_listen: "{{ 'script.' ~ room ~ '_listen' }}"
-  script_power:  "{{ 'script.' ~ room ~ '_power_off' }}"
 
 action:
   - choose:
@@ -52,19 +50,19 @@ action:
             value_template: "{{ resolved == 'watch' }}"
         sequence:
           - alias: Run watch script
-            service: "{{ script_watch }}"
+            service: !input watch_script
       - conditions:
           - condition: template
             value_template: "{{ resolved == 'listen' }}"
         sequence:
           - alias: Run listen script
-            service: "{{ script_listen }}"
+            service: !input listen_script
       - conditions:
           - condition: template
             value_template: "{{ resolved == 'power_off' }}"
         sequence:
           - alias: Run power off script
-            service: "{{ script_power }}"
+            service: !input power_off_script
 
   - alias: Update last_run
     service: input_select.select_option
@@ -77,4 +75,4 @@ action:
     service: logbook.log
     data:
       name: PiHub Enactor
-      message: "Ran script for '{{ resolved }}' (room={{ room }})"
+      message: "Ran script for '{{ resolved }}'"
