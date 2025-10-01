@@ -1,0 +1,38 @@
+blueprint:
+  name: Reset Music Assistant
+  description: >
+    Clears the Music Assistant queue, powers it off, and resets the radio station index.
+  domain: script
+  input:
+    music_assistant_media_player:
+      name: Music Assistant Media Player
+      description: ""
+      selector:
+        entity:
+          domain: media_player
+    radio_station_index:
+      name: Radio Station Index
+      description: Input number tracking the current station index.
+      selector:
+        entity:
+          domain: input_number
+
+mode: single
+
+sequence:
+  - alias: Clear Music Assistant Playlist
+    action: media_player.clear_playlist
+    target:
+      entity_id: !input music_assistant_media_player
+
+  - alias: Turn Off Music Assistant
+    action: media_player.turn_off
+    target:
+      entity_id: !input music_assistant_media_player
+
+  - alias: Reset Radio Station Index
+    action: input_number.set_value
+    target:
+      entity_id: !input radio_station_index
+    data:
+      value: -1
