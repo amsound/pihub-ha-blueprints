@@ -5,20 +5,20 @@ blueprint:
   input:
     speaker_media_player:
       name: Speaker Media Player
-      description: The media player to monitor and turn off.
+      description: ""
       selector:
         entity:
           domain: media_player
     idle_timeout_minutes:
       name: Idle Timeout (Minutes)
-      description: Number of minutes to wait while idle before turning off.
+      description: ""
+      default: 5
       selector:
         number:
           min: 1
           max: 60
           unit_of_measurement: minutes
           mode: slider
-          default: 5
 
 trigger:
   - platform: state
