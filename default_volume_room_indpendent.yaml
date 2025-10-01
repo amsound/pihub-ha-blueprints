@@ -30,18 +30,28 @@ blueprint:
       selector:
         entity:
           domain: media_player
-    listen_volume_level:
+    listen_volume:
       name: Listen Volume Level
       description: ""
+      default: 0.45
       selector:
-        entity:
-          domain: input_number
-    watch_volume_level:
+        number:
+          min: 0
+          max: 1
+          step: 0.01
+          mode: slider
+          unit_of_measurement: ""
+    watch_volume:
       name: Watch Volume Level
       description: ""
+      default: 0.48
       selector:
-        entity:
-          domain: input_number
+        number:
+          min: 0
+          max: 1
+          step: 0.01
+          mode: slider
+          unit_of_measurement: ""
 
 triggers:
   - platform: state
@@ -57,10 +67,6 @@ mode: single
 
 variables:
   speaker: !input speaker_media_player
-  listen_entity: !input listen_volume_level
-  watch_entity: !input watch_volume_level
-  listen_volume: "{{ states(listen_entity) | float }}"
-  watch_volume: "{{ states(watch_entity) | float }}"
 
 actions:
   - choose:
