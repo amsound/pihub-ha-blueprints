@@ -2,18 +2,18 @@ blueprint:
   name: Default Volume - Room Independent
   description: >
     Adjusts speaker volume automatically based on input source:
-    - If Optical input becomes active, sets to watch volume
-    - If WiFi input becomes active and Music Assistant is playing, sets to listen volume
+    - If Optical input becomes active, sets to specified level
+    - If Wifi input becomes active and Music Assistant is playing, sets to specified level
   domain: automation
   input:
     speaker_opt_sensor:
-      name: Speaker Optical Input Sensor
+      name: Speaker Optical (Watch) Sensor
       description: ""
       selector:
         entity:
           domain: binary_sensor
     speaker_wifi_sensor:
-      name: Speaker WiFi Input Sensor
+      name: Speaker Wifi (Listen) Sensor
       description: ""
       selector:
         entity:
@@ -30,10 +30,10 @@ blueprint:
       selector:
         entity:
           domain: media_player
-    listen_volume:
-      name: Listen Volume Level
+    watch_volume:
+      name: Watch Activity Volume Default
       description: ""
-      default: 0.45
+      default: 0.48
       selector:
         number:
           min: 0
@@ -41,10 +41,10 @@ blueprint:
           step: 0.01
           mode: slider
           unit_of_measurement: ""
-    watch_volume:
-      name: Watch Volume Level
+    listen_volume:
+      name: Listen Activity Volume Default
       description: ""
-      default: 0.48
+      default: 0.45
       selector:
         number:
           min: 0
