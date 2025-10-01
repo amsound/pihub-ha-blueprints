@@ -15,9 +15,10 @@ blueprint:
       selector:
         number:
           min: 1
-          max: 120
+          max: 60
           unit_of_measurement: minutes
           mode: slider
+          default: 5
 
 trigger:
   - platform: state
