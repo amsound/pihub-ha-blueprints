@@ -82,7 +82,7 @@ actions:
               {{ state_attr(speaker, 'volume_level') | float != watch_volume_value }}
           - action: media_player.volume_set
             target:
-              entity_id: "{{ speaker }}"
+              entity_id: !input speaker_media_player
             data:
               volume_level: !input watch_volume
 
@@ -102,6 +102,6 @@ actions:
               {{ state_attr(speaker, 'volume_level') | float != listen_volume_value }}
           - action: media_player.volume_set
             target:
-              entity_id: "{{ speaker }}"
+              entity_id: !input speaker_media_player
             data:
               volume_level: !input listen_volume
