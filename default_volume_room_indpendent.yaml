@@ -77,9 +77,6 @@ actions:
           - condition: trigger
             id: "opt_input"
         sequence:
-          - condition: template
-            value_template: >
-              {{ state_attr(speaker, 'volume_level') | float != watch_volume_value }}
           - action: media_player.volume_set
             target:
               entity_id: !input speaker_media_player
@@ -96,9 +93,6 @@ actions:
                 to: "playing"
             timeout: "10"
             continue_on_timeout: false
-          - condition: template
-            value_template: >
-              {{ state_attr(speaker, 'volume_level') | float != listen_volume_value }}
           - action: media_player.volume_set
             target:
               entity_id: !input speaker_media_player
