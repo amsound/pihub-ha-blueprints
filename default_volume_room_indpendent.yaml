@@ -71,12 +71,12 @@ variables:
   listen_volume_value: !input listen_volume
 
 actions:
+  - delay: "00:00:01"
   - choose:
       - conditions:
           - condition: trigger
             id: "opt_input"
         sequence:
-          - delay: "1"
           - condition: template
             value_template: >
               {{ state_attr(speaker, 'volume_level') | float != watch_volume_value }}
@@ -90,7 +90,6 @@ actions:
           - condition: trigger
             id: "wifi_input"
         sequence:
-          - delay: "1"
           - wait_for_trigger:
               - platform: state
                 entity_id: !input music_assistant_entity
