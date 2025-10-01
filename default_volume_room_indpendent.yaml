@@ -77,12 +77,12 @@ actions:
           - delay: "1"
           - condition: template
             value_template: >
-              {{ state_attr(speaker, 'volume_level') | float != watch_volume }}
+              {{ state_attr(speaker, 'volume_level') | float != (!input watch_volume) }}
           - action: media_player.volume_set
             target:
               entity_id: "{{ speaker }}"
             data:
-              volume_level: "{{ watch_volume }}"
+              volume_level: !input watch_volume
 
       - conditions:
           - condition: trigger
@@ -97,9 +97,9 @@ actions:
             continue_on_timeout: false
           - condition: template
             value_template: >
-              {{ state_attr(speaker, 'volume_level') | float != listen_volume }}
+              {{ state_attr(speaker, 'volume_level') | float != (!input listen_volume) }}
           - action: media_player.volume_set
             target:
               entity_id: "{{ speaker }}"
             data:
-              volume_level: "{{ listen_volume }}"
+              volume_level: !input listen_volume
