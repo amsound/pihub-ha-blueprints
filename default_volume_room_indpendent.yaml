@@ -43,7 +43,7 @@ blueprint:
         entity:
           domain: input_number
 
-trigger:
+triggers:
   - platform: state
     id: "opt_input"
     entity_id: !input speaker_opt_sensor
@@ -62,11 +62,11 @@ variables:
   listen_volume: "{{ states(listen_entity) | float }}"
   watch_volume: "{{ states(watch_entity) | float }}"
 
-action:
+actions:
   - choose:
       - conditions:
           - condition: trigger
-            trigger: ["opt_input"]
+            id: "opt_input"
         sequence:
           - delay: "1"
           - condition: template
@@ -80,7 +80,7 @@ action:
 
       - conditions:
           - condition: trigger
-            trigger: ["wifi_input"]
+            id: "wifi_input"
         sequence:
           - delay: "1"
           - wait_for_trigger:
