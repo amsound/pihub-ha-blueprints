@@ -1,5 +1,5 @@
 blueprint:
-  name: Power off Media Player when Idle
+  name: Power Off Media Player when Idle
   description: Turns off a media player if it remains idle for a given number of minutes.
   domain: automation
   input:
