@@ -5,7 +5,7 @@ blueprint:
     - MQTT intents from PiHub,
     - TV power-on
     - Speakers on Wifi
-    Writes the resolved value to the room Activity input select
+    Compares against the last run activity. Writes the resolved value to the room Activity input select.
   domain: automation
   source_url: https://github.com/amsound/pihub-remote
 
