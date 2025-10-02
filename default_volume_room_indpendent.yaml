@@ -1,37 +1,15 @@
 blueprint:
   name: Default Volume - Room Independent
-  description: >
-    Adjusts speaker volume automatically based on input source:
-    - If Optical input becomes active, sets to specified level
-    - If Wifi input becomes active and Music Assistant is playing, sets to specified level
+  description: |
+    Adjusts speaker volume based on input source sensors:
+    - Optical input → sets to level specified
+    - WiFi + Music Assistant → sets to level specified
+  
   domain: automation
+  
   input:
-    speaker_opt_sensor:
-      name: Speaker Optical (Watch) Sensor
-      description: ""
-      selector:
-        entity:
-          domain: binary_sensor
-    speaker_wifi_sensor:
-      name: Speaker Wifi (Listen) Sensor
-      description: ""
-      selector:
-        entity:
-          domain: binary_sensor
-    speaker_media_player:
-      name: Speaker Media Player
-      description: ""
-      selector:
-        entity:
-          domain: media_player
-    music_assistant_entity:
-      name: Music Assistant Media Player
-      description: ""
-      selector:
-        entity:
-          domain: media_player
     watch_volume:
-      name: Watch Activity Volume Default
+      name: Watch Activity initial level
       description: ""
       selector:
         number:
@@ -41,7 +19,7 @@ blueprint:
           mode: slider
           unit_of_measurement: ""
     listen_volume:
-      name: Listen Activity Volume Default
+      name: Listen Activity initial level
       description: ""
       selector:
         number:
@@ -50,6 +28,30 @@ blueprint:
           step: 0.01
           mode: slider
           unit_of_measurement: ""
+    speaker_opt_sensor:
+      name: Speakers on Opt Sensor
+      description: ""
+      selector:
+        entity:
+          domain: binary_sensor
+    speaker_wifi_sensor:
+      name: Speakers on Wifi Sensor
+      description: ""
+      selector:
+        entity:
+          domain: binary_sensor
+    speaker_media_player:
+      name: Speakers
+      description: ""
+      selector:
+        entity:
+          domain: media_player
+    music_assistant_entity:
+      name: Music Assistant
+      description: ""
+      selector:
+        entity:
+          domain: media_player
 
 triggers:
   - platform: state
