@@ -11,7 +11,7 @@ blueprint:
         entity:
           domain: input_select
     last_run_input_select:
-      name: Room Last-run Activity
+      name: Room Last run Activity
       selector:
         entity:
           domain: input_select
