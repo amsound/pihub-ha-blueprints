@@ -1,39 +1,36 @@
 blueprint:
-  name: Listen Mode - Room Independent
-  description: >
-    Sets up room for listening to radio by turning off the TV, switching speaker to WiFi input,
-    and launching a Music Assistant radio stream. Only acts when necessary (idempotent).
+  name: Listen Script - Room Independent
+  description: |
+    - Turns off TV
+    - Switches speaker to Wifi input, plus launches radio station via Music Assistant.
+     Only acts when necessary (idempotent)
+     
   domain: script
+  
   input:
+    room:
+      name: Room Name (for MQTT topic)
+      description: ""
+      selector:
+        text: {}
     tv_power_sensor:
-      name: TV Power Sensor
+      name: Room TV Sensor
       description: ""
       selector:
         entity:
           domain: binary_sensor
     speaker_media_player:
-      name: Speaker Media Player
+      name: Speaker
       description: ""
       selector:
         entity:
           domain: media_player
     speaker_wifi_sensor:
-      name: Speaker WiFi Input Sensor
+      name: Speaker on Wifi Sensor
       description: ""
       selector:
         entity:
           domain: binary_sensor
-    room:
-      name: Room Name (for MQTT topic)
-      description: Used to construct MQTT topic pihub/<room>/cmd.
-      selector:
-        text: {}
-    payload_off:
-      name: Apple TV Power OFF Payload
-      description: MQTT payload to turn off the Apple TV (non-retained, QoS 1).
-      default: "macro:atv-off"
-      selector:
-        text: {}
     music_assistant_radio_tuner_script:
       name: Music Assistant Radio Tuner Script
       description: ""
@@ -41,8 +38,15 @@ blueprint:
         entity:
           domain: script
     radio_station:
-      name: Radio Station
-      description: Name of the station to pass to the tuner script (e.g., "Classic FM").
+      name: Radio Station to Play
+      description: ""
+      default: "Classic FM"
+      selector:
+        text: {}
+    payload_off:
+      name: Apple TV Power Off Payload
+      description: ""
+      default: "macro:atv-off"
       selector:
         text: {}
 
