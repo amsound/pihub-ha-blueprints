@@ -1,18 +1,17 @@
 blueprint:
   name: PiHub - Enact Activity (room-agnostic)
-  description: >
-    Enact watch/listen/power_off whenever the room's activity input_select changes.
-    Updates the room's last_run input_select to the same value.
-    Uses user-selected scripts instead of naming convention.
+  description: |
+    - Triggers scripts whenever the room’s *activity* changes - powered by the Resolve automation
+    - After the script wraps up, it updates the `last_run` input_select
   domain: automation
   input:
     activity_input_select:
-      name: Activity input_select (listen to)
+      name: Room Activity
       selector:
         entity:
           domain: input_select
     last_run_input_select:
-      name: Last-run input_select (update after running)
+      name: Room Last-run Activity
       selector:
         entity:
           domain: input_select
