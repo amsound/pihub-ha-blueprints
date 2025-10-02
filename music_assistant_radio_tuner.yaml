@@ -1,34 +1,34 @@
 blueprint:
-  name: Music Assistant Radio Tuner
-  description: >
-    Tune Music Assistant radio stations by name or navigate next/prev with wrap-around.
-    Keeps index in an input_number helper. Self-contained: pass station list as a variable.
+  name: Music Assistant Radio Tuner - Room Independent
+  description: |
+    Tune Music Assistant radio stations by name or navigate next/prev with wrap-around. Keeps index in an input number helper.
   domain: script
   input:
-    station_list_string:
-      name: Radio Station List
-      description: Comma-separated list of radio stations, in desired dial order.
-      default: "Absolute Radio,BBC Radio 1,BBC Radio 2,BBC Radio 3,BBC Radio 3 Unwind,BBC Radio 4,BBC Radio 4 Extra,BBC Radio 6 Music,BBC Radio Sussex,Capital London,Classic FM,FIP,Heart,KCRW Eclectic 24,KCRW Live,Magic Radio,Radio X,Virgin Radio"
-    station:
-      name: Station Name (optional)
-      description: Set this to directly tune to a station by name.
-      default: ""
-    tune_action:
-      name: Tune Action (optional)
-      description: Set to 'next' or 'prev' to move on the station ladder.
-      default: ""
-    index_helper:
-      name: Index Helper
-      description: input_number entity to store the station index (must allow -1 as min).
-      selector:
-        entity:
-          domain: input_number
     media_player:
-      name: Media Player
-      description: Media player entity from Music Assistant.
+      name: Music Assistant
+      description: ""
       selector:
         entity:
           domain: media_player
+    index_helper:
+      name: Radio Station Index helper
+      description: ""
+      selector:
+        entity:
+          domain: input_number
+    station_list_string:
+      name: List of Radio station presets, Comma-separated
+      description: ""
+      default: "Absolute Radio,BBC Radio 1,BBC Radio 2,BBC Radio 3,BBC Radio 3 Unwind,BBC Radio 4,BBC Radio 4 Extra,BBC Radio 6 Music,BBC Radio Sussex,Capital London,Classic FM,FIP,Heart,KCRW Eclectic 24,KCRW Live,Magic Radio,Radio X,Virgin Radio"
+
+    station:
+      name: Station Name (for scripting)
+      description: ""
+      default: ""
+    tune_action:
+      name: Tune Action (for scripting)
+      description: ""
+      default: ""
 
 mode: single
 sequence:
