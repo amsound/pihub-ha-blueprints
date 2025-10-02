@@ -1,56 +1,59 @@
 blueprint:
-  name: PiHub – Resolve Activity (watch/listen/power_off)
-  description: >
-    Resolves the room activity from (a) MQTT intents from PiHub,
-    (b) TV power-on (binary_sensor), and (c) Speakers Wifi binary_sensor.
-    Writes the resolved value to your Activity input_select, but only when it changes.
+  name: PiHub – Resolve Activity
+  description: |
+    Resolves the room activity from:
+    - MQTT intents from PiHub,
+    - TV power-on
+    - Speakers on Wifi
+    Writes the resolved value to the room Activity input select
   domain: automation
   source_url: https://github.com/amsound/pihub-remote
 
   input:
-    # Primary state targets
-    activity_select:
-      name: Activity input_select
-      description: Input select that represents the current room activity
-      selector:
-        entity:
-          domain: input_select
-
-    last_run_select:
-      name: Last-run input_select
-      description: Stores the last activity that was enacted
-      selector:
-        entity:
-          domain: input_select
 
     # Sensors that can push us into an activity
     tv_sensor:
-      name: TV power sensor
-      description: Binary sensor that turns "on" when the TV is on
+      name: Room TV power sensor
+      description: ""
       selector:
         entity:
           domain: binary_sensor
 
     speakers_wifi_sensor:
-      name: Speakers Wifi binary_sensor
-      description: Binary sensor that is 'on' when speakers are streaming via Wifi
+      name: Speakers on Wifi Sensor
+      description: ""
       selector:
         entity:
           domain: binary_sensor
 
     # PiHub intent topic
     mqtt_topic:
-      name: PiHub activity topic
-      description: Topic where PiHub publishes intents (e.g. pihub/<room>/activity)
+      name: PiHub Activity MQTT Topic
+      description: ""
+      default: "pihub/<room>/activity"
       selector:
-        text:
+        text: {}
+  
+    # Primary state targets
+    activity_select:
+      name: Room Activity
+      description: ""
+      selector:
+        entity:
+          domain: input_select
+
+    last_run_select:
+      name: Room Last run
+      description: ""
+      selector:
+        entity:
+          domain: input_select
 
     # Optional
     room_label:
       name: Room label (for logging)
-      default: Living Room
       selector:
-        text:
+        text: {}
 
     debug_logs:
       name: Debug logs
