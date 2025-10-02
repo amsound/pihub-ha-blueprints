@@ -11,6 +11,14 @@ blueprint:
 
   input:
 
+    # PiHub intent topic
+    mqtt_topic:
+      name: PiHub Activity MQTT Topic e.g. pihub/<room>/activity
+      description: ""
+      default: ""
+      selector:
+        text: {}
+  
     # Sensors that can push us into an activity
     tv_sensor:
       name: Room TV power sensor
@@ -25,14 +33,6 @@ blueprint:
       selector:
         entity:
           domain: binary_sensor
-
-    # PiHub intent topic
-    mqtt_topic:
-      name: PiHub Activity MQTT Topic
-      description: ""
-      default: "pihub/<room>/activity"
-      selector:
-        text: {}
   
     # Primary state targets
     activity_select:
