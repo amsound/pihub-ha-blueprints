@@ -1,5 +1,6 @@
 blueprint:
   name: Music Assistant Radio Tuner - Room Independent
+  domain: script
   description: |
     Tune Music Assistant radio stations by name or navigate next/prev with wrap-around behavior.
     - Stores the current station position in an input_number helper (Use -1 as a neutral/off state)
