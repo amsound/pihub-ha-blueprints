@@ -1,6 +1,6 @@
 blueprint:
   name: Watch - Room Independent
-  description: >
+  description: |
     - Turns TV On
     - Sets Speakers to Optical Input, plus clears any Music Assistant play queue
     Only acts when necessary (idempotent).
