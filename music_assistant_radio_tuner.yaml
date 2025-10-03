@@ -1,7 +1,7 @@
 blueprint:
   name: Music Assistant Radio Tuner - Room Independent
   description: |
-    Tune Music Assistant radio stations by name or navigate next/prev with wrap-around. Keeps index in an input number helper.
+    Tune Music Assistant radio stations by name or navigate next/prev with wrap-around. Updates the index on each call using an input number helper.
   domain: script
   input:
     media_player:
@@ -17,9 +17,9 @@ blueprint:
         entity:
           domain: input_number
     station_list_string:
-      name: List of Radio station presets, Comma-separated
+      name: List of Radio stations to be presets (comma-separated)
       description: ""
-      default: "Absolute Radio,BBC Radio 1,BBC Radio 2,BBC Radio 3,BBC Radio 3 Unwind,BBC Radio 4,BBC Radio 4 Extra,BBC Radio 6 Music,BBC Radio Sussex,Capital London,Classic FM,FIP,Heart,KCRW Eclectic 24,KCRW Live,Magic Radio,Radio X,Virgin Radio"
+      default: "Absolute Radio, BBC Radio 1, BBC Radio 2, BBC Radio 3, BBC Radio 3 Unwind, BBC Radio 4, BBC Radio 4 Extra, BBC Radio 6 Music, BBC Radio Sussex, Capital London, Classic FM, FIP, Heart, KCRW Eclectic 24, KCRW Live, Magic Radio, Radio X, Virgin Radio"
 
     station:
       name: Station Name (for scripting)
