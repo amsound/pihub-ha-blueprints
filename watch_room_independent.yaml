@@ -1,45 +1,46 @@
 blueprint:
   name: Watch - Room Independent
   description: >
-    Activates a watch mode by turning on a TV via MQTT and ensuring speaker input is set to Optical.
-    Only acts when necessary (idempotent). Room-specific via MQTT topic.
+    - Turns TV On
+    - Sets Speakers to Optical Input, plus clears any Music Assistant play queue
+    Only acts when necessary (idempotent).
   domain: script
   input:
+    room:
+      name: Room Name (for MQTT topic)
+      description: ""
+      selector:
+        text: {}
     tv_power_sensor:
-      name: TV Power Sensor
+      name: Room TV Sensor
       description: ""
       selector:
         entity:
           domain: binary_sensor
     speaker_media_player:
-      name: Speaker Media Player
+      name: Speaker
       description: ""
       selector:
         entity:
           domain: media_player
     speaker_optical_sensor:
-      name: Speaker Optical Input Sensor
+      name: Speaker Optical on Optical
       description: ""
       selector:
         entity:
           domain: binary_sensor
-    room:
-      name: Room Name (for MQTT topic)
-      description: Used to construct MQTT topic pihub/<room>/cmd - snake_case e.g. living_room
-      selector:
-        text: {}
-    payload_on:
-      name: Apple TV Power ON Payload
-      description: MQTT payload to turn on the Apple TV (non-retained, QoS 1).
-      default: "macro:atv-on"
-      selector:
-        text: {}
     reset_music_assistant_script:
       name: Music Assistant Reset Script
       description: ""
       selector:
         entity:
           domain: script
+    payload_on:
+      name: Apple TV Power On Payload
+      description: MQTT payload to turn on the Apple TV (non-retained, QoS 1).
+      default: "macro:atv-on"
+      selector:
+        text: {}
 
 variables:
   room: !input room
