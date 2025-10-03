@@ -30,7 +30,7 @@ blueprint:
         entity:
           domain: script
     payload_off:
-      name: Apple TV Power OFF Payload
+      name: Apple TV Power Off Payload
       description: ""
       default: "macro:atv-off"
       selector:
