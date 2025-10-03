@@ -1,5 +1,5 @@
 blueprint:
-  name: PiHub - Enact Activity (room-agnostic)
+  name: PiHub - Enact Activity
   description: |
     - Triggers scripts whenever the room’s activity changes - powered by the Resolve automation
     - After the script completes, it updates the Last run activity.
