@@ -3,7 +3,7 @@ blueprint:
   description: |
     Tune Music Assistant radio stations by name or navigate next/prev with wrap-around behavior.
     -	Stores the current station position in an input_number helper (Use -1 as a neutral/off state)
-  	-	Accepts a comma-separated list of stations — custom “radio dial”
+  	-	Accepts a comma-separated list of stations — custom radio dial
   	-	Supports two optional inputs for navigation:
   	  -	station: Tune directly by name
   	  -	tune_action: Use "next" or "prev" to move along the dial (with wrap-around)
