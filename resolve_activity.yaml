@@ -1,5 +1,5 @@
 blueprint:
-  name: PiHub – Resolve Activity
+  name: PiHub - Resolve Activity
   description: |
     Resolves the room activity from:
     - MQTT intents from PiHub,
@@ -7,7 +7,6 @@ blueprint:
     - Speakers on Wifi
     Compares against the last run activity. Writes the resolved value to the room Activity input select.
   domain: automation
-  source_url: https://github.com/amsound/pihub-remote
 
   input:
 
