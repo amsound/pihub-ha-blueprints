@@ -1,11 +1,13 @@
 blueprint:
-  name: Reset Music Assistant
-  description: >
-    Clears the Music Assistant queue, powers it off, and resets the radio station index.
+  name: Reset Music Assistant - Room Independent
+  description: |
+    - Clears the Music Assistant queue
+    - Turns off the media player
+    - Resets radio station index
   domain: script
   input:
     music_assistant_media_player:
-      name: Music Assistant Media Player
+      name: Music Assistant
       description: ""
       selector:
         entity:
