@@ -20,7 +20,7 @@ blueprint:
       name: MQTT Topic (Trigger)
       description: MQTT topic to listen on (e.g. pihub/kitchen/activity)
       selector:
-        text:
+        text: {}
 
     tv_sensor:
       name: TV Sensor
@@ -35,6 +35,12 @@ blueprint:
       selector:
         entity:
           domain: media_player
+          
+    mqtt_topic_tx:
+      name: MQTT Topic (Command)
+      description: MQTT topic to publish command to (e.g. pihub/kitchen/cmd)
+      selector:
+        text: {}
 
     last_run_select:
       name: Last Run Activity
@@ -66,7 +72,7 @@ action:
             sequence:
               - service: mqtt.publish
                 data:
-                  topic: !input mqtt_topic_rx
+                  topic: !input mqtt_topic_tx
                   payload: macro:atv-on
                   qos: 1
                   retain: false
