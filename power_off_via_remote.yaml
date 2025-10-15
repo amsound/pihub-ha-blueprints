@@ -1,9 +1,12 @@
 blueprint:
   name: Power Off (via MQTT Activity)
-  description: >
-    When an MQTT message with payload "power_off" is received on a given topic,
-    this automation updates the activity input, powers off the TV if it's on, 
-    turns off the speakers, resets Music Assistant, and logs the activity.
+  description: |
+    When MQTT receives 'power_off' on a specific topic, this automation:
+    - updates activity
+    - turns off the TV (if it's on)
+    - turns off the speakers
+    - resets Music Assistant
+    - updates last run activity
 
   domain: automation
 
@@ -15,7 +18,7 @@ blueprint:
         text: {}
 
     room_activity:
-      name: Room Activity Input Select
+      name: Activity Input Select
       description: Input select to set current room activity
       selector:
         entity:
@@ -29,41 +32,41 @@ blueprint:
           domain: binary_sensor
 
     mqtt_topic_tx:
-      name: MQTT Topic (Command)
-      description: Full MQTT topic to publish TV-off command to (e.g. pihub/kitchen/cmd)
+      name: MQTT Command Topic e.g. pihub/kitchen/cmd
+      description: ""
       selector:
         text: {}
 
     speakers:
       name: Speakers
-      description: Media player entity for the speakers
+      description: ""
       selector:
         entity:
           domain: media_player
 
     music_assistant_reset_script:
       name: Music Assistant Reset Script
-      description: Script to reset Music Assistant
+      description: ""
       selector:
         entity:
           domain: script
 
     last_run_activity:
       name: Last Run Activity Input Select
-      description: Input select to record last run activity
+      description: ""
       selector:
         entity:
           domain: input_select
 
-trigger:
+triggers:
   - platform: mqtt
     topic: !input mqtt_topic_rx
     payload: "power_off"
 
 condition: []
 
-action:
-  - service: input_select.select_option
+actions:
+  - action: input_select.select_option
     target:
       entity_id: !input room_activity
     data:
@@ -76,7 +79,7 @@ action:
                 entity_id: !input tv_sensor
                 state: "on"
             sequence:
-              - service: mqtt.publish
+              - action: mqtt.publish
                 data:
                   topic: !input mqtt_topic_tx
                   payload: macro:atv-off
@@ -84,13 +87,13 @@ action:
                   retain: false
 
       - sequence:
-          - service: media_player.turn_off
+          - action: media_player.turn_off
             target:
               entity_id: !input speakers
 
           - action: !input music_assistant_reset_script
 
-  - service: input_select.select_option
+  - action: input_select.select_option
     target:
       entity_id: !input last_run_activity
     data:
