@@ -1,36 +1,48 @@
 blueprint:
-  name: "Listen via Remote"
+  name: Listen (via Remote)
   description: >
-    Plays a radio station using Music Assistant, and sends an MQTT command to turn off TV if it's on.
-  domain: script
+    Play a radio station via Music Assistant, and if the TV is on, send an MQTT command to turn it off.
+  domain: automation
   input:
-    station:
+    radio_station:
       name: Radio Station
-      description: Name of the radio station to play.
-      selector:
-        text:
-    radio_tuner_script:
-      name: Music Assistant Radio Tuner Script
-      description: Script entity that starts playing the selected radio station.
-      selector:
-        entity:
-          domain: script
-    tv_sensor:
-      name: TV Binary Sensor
-      description: Binary sensor representing TV on/off state.
-      selector:
-        entity:
-          domain: binary_sensor
-    room:
-      name: Room (used for MQTT topic)
-      description: Will be used to construct topic like `pihub/<room>/cmd`
+      description: Name of the station to play
       selector:
         text:
 
-sequence:
-  - service: !input radio_tuner_script
+    radio_tuner_script:
+      name: Music Assistant Radio Tuner
+      description: Script that plays the radio station
+      selector:
+        entity:
+          domain: script
+
+    tv_sensor:
+      name: TV Binary Sensor
+      description: Binary sensor that tracks TV on/off state
+      selector:
+        entity:
+          domain: binary_sensor
+
+    mqtt_room:
+      name: Room (for MQTT topic)
+      description: Will generate topic like 'pihub/ROOM/cmd'
+      selector:
+        text:
+
+mode: single
+
+variables:
+  mqtt_topic: >
+    {{ 'pihub/' ~ (mqtt_room | lower | replace(' ', '_')) ~ '/cmd' }}
+
+action:
+  - service: script.turn_on
+    target:
+      entity_id: !input radio_tuner_script
     data:
-      station: !input station
+      variables:
+        station: !input radio_station
 
   - choose:
       - conditions:
@@ -40,8 +52,7 @@ sequence:
         sequence:
           - service: mqtt.publish
             data:
+              topic: "{{ mqtt_topic }}"
+              payload: macro:atv-off
               qos: 1
               retain: false
-              topic: >
-                {{ "pihub/" ~ (iif((room := iif((!input room) != "", !input room, "unknown")), room, "unknown")) ~ "/cmd" }}
-              payload: macro:atv-off
