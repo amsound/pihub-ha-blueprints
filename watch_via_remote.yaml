@@ -2,13 +2,20 @@ blueprint:
   name: Watch (via MQTT Activity)
   description: |
     When MQTT receives 'watch' on a specific topic, this automation:
-    - sets an input_select to 'watch'
+    - updates activity
     - turns on the TV (via MQTT) if it's off
-    - switches speakers to a source
+    - switches speakers to Optical
+    - resets Music Assistant
     - updates last-run activity
   domain: automation
 
   input:
+    mqtt_topic_rx:
+      name: MQTT Trigger Topic e.g. pihub/<room>/activity
+      description: ""
+      selector:
+        text: {}
+
     activity_select:
       name: Activity Input Select
       description: ""
@@ -16,18 +23,18 @@ blueprint:
         entity:
           domain: input_select
 
-    mqtt_topic_rx:
-      name: MQTT Trigger Topic e.g. pihub/kitchen/activity
-      description: ""
-      selector:
-        text: {}
-
     tv_sensor:
       name: TV Sensor
       description: ""
       selector:
         entity:
           domain: binary_sensor
+          
+    mqtt_topic_tx:
+      name: MQTT Command Topic e.g. pihub/<room>/cmd
+      description: ""
+      selector:
+        text: {}
 
     speakers:
       name: Speakers
@@ -35,12 +42,6 @@ blueprint:
       selector:
         entity:
           domain: media_player
-          
-    mqtt_topic_tx:
-      name: MQTT Command Topic e.g. pihub/kitchen/cmd
-      description: ""
-      selector:
-        text: {}
         
     music_assistant_reset_script:
       name: Music Assistant Reset Script
