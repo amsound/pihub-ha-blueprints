@@ -9,10 +9,10 @@ blueprint:
 
   input:
     mqtt_topic_rx:
-      name: MQTT Topic (Trigger)
-      description: Full MQTT topic to listen on (e.g. pihub/kitchen/activity)
+      name: MQTT Topic Trigger (e.g. pihub/kitchen/activity)
+      description: ""
       selector:
-        text:
+        text: {}
 
     room_activity:
       name: Room Activity Input Select
@@ -32,7 +32,7 @@ blueprint:
       name: MQTT Topic (Command)
       description: Full MQTT topic to publish TV-off command to (e.g. pihub/kitchen/cmd)
       selector:
-        text:
+        text: {}
 
     speakers:
       name: Speakers
@@ -80,7 +80,7 @@ action:
                 data:
                   topic: !input mqtt_topic_tx
                   payload: macro:atv-off
-                  qos: 1
+                  qos: "1"
                   retain: false
 
       - sequence:
@@ -88,7 +88,7 @@ action:
             target:
               entity_id: !input speakers
 
-          - service: !input music_assistant_reset_script
+          - action: !input music_assistant_reset_script
 
   - service: input_select.select_option
     target:
