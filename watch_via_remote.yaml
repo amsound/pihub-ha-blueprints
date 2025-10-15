@@ -1,0 +1,86 @@
+blueprint:
+  name: Watch (via MQTT Activity)
+  description: >
+    When MQTT receives 'watch' on a specific topic, this automation:
+    - sets an input_select to 'watch'
+    - turns on the TV (via MQTT) if it's off
+    - switches speakers to a source
+    - updates last-run activity
+  domain: automation
+
+  input:
+    activity_select:
+      name: Activity Input Select
+      description: input_select for setting the current activity
+      selector:
+        entity:
+          domain: input_select
+
+    mqtt_topic_rx:
+      name: MQTT Topic (Trigger)
+      description: MQTT topic to listen on (e.g. pihub/kitchen/activity)
+      selector:
+        text:
+
+    tv_sensor:
+      name: TV Sensor
+      description: Binary sensor for TV power state
+      selector:
+        entity:
+          domain: binary_sensor
+
+    speakers:
+      name: Speakers
+      description: Media player entity to change source
+      selector:
+        entity:
+          domain: media_player
+
+    last_run_select:
+      name: Last Run Activity
+      description: input_select to store the last activity
+      selector:
+        entity:
+          domain: input_select
+
+trigger:
+  - platform: mqtt
+    topic: !input mqtt_topic_rx
+    payload: "watch"
+
+condition: []
+
+action:
+  - service: input_select.select_option
+    target:
+      entity_id: !input activity_select
+    data:
+      option: watch
+
+  - parallel:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: !input tv_sensor
+                state: "off"
+            sequence:
+              - service: mqtt.publish
+                data:
+                  topic: !input mqtt_topic_rx
+                  payload: macro:atv-on
+                  qos: 1
+                  retain: false
+
+      - service: media_player.select_source
+        target:
+          entity_id: !input speakers
+        data:
+          source: Opt
+
+  - service: input_select.select_option
+    target:
+      entity_id: !input last_run_select
+    data:
+      option: watch
+
+mode: single
