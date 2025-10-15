@@ -12,27 +12,27 @@ blueprint:
 
   input:
     mqtt_topic_rx:
-      name: MQTT Topic Trigger (e.g. pihub/kitchen/activity)
+      name: MQTT Topic Trigger e.g. pihub/<room>/activity
       description: ""
       selector:
         text: {}
 
     room_activity:
       name: Activity Input Select
-      description: Input select to set current room activity
+      description: ""
       selector:
         entity:
           domain: input_select
 
     tv_sensor:
       name: TV Sensor
-      description: Binary sensor that detects if the TV is on
+      description: ""
       selector:
         entity:
           domain: binary_sensor
 
     mqtt_topic_tx:
-      name: MQTT Command Topic e.g. pihub/kitchen/cmd
+      name: MQTT Command Topic e.g. pihub/<room>/cmd
       description: ""
       selector:
         text: {}
