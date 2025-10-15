@@ -1,0 +1,141 @@
+blueprint:
+  name: Source Override
+  description: |
+    Re-align devices when someone manually turns on the TV or switches speakers to Wi-Fi.
+    - If TV turns on and last activity wasn't "watch": set activity to watch, set speakers to Opt,
+      run Music Assistant reset script, and update last-run.
+    - If speakers go to Wi-Fi and last activity wasn't "listen": set activity to listen,
+      turn off the TV via MQTT (if it's on), and update last-run.
+  domain: automation
+
+  input:
+    room_activity:
+      name: Activity Input Select
+      description: ""
+      selector:
+        entity:
+          domain: input_select
+
+    last_run_activity:
+      name: Last Run Activity Input Select
+      description: ""
+      selector:
+        entity:
+          domain: input_select
+
+    tv_sensor:
+      name: TV Sensor
+      description: ""
+      selector:
+        entity:
+          domain: binary_sensor
+
+    speakers_wifi_sensor:
+      name: Speakers on Wi-Fi Sensor
+      description: ""
+      selector:
+        entity:
+          domain: binary_sensor
+
+    speakers:
+      name: Speakers
+      description: ""
+      selector:
+        entity:
+          domain: media_player
+
+    music_assistant_reset_script:
+      name: Music Assistant Reset Script
+      description: ""
+      selector:
+        entity:
+          domain: script
+
+    mqtt_topic_tx:
+      name: MQTT Command Topic e.g. pihub/<room>/cmd
+      description: ""
+      selector:
+        text: {}
+
+mode: single
+
+triggers:
+  - platform: state
+    id: tv_on
+    entity_id: !input tv_sensor
+    to: "on"
+
+  - platform: state
+    id: speakers_wifi
+    entity_id: !input speakers_wifi_sensor
+    to: "on"
+
+condition: []
+
+actions:
+  - choose:
+
+      # ------- TV turned on, but last run wasn't "watch" -------
+      - conditions:
+          - condition: trigger
+            id: tv_on
+          - condition: not
+            conditions:
+              - condition: state
+                entity_id: !input last_run_activity
+                state: "watch"
+        sequence:
+          - action: input_select.select_option
+            target:
+              entity_id: !input room_activity
+            data:
+              option: "watch"
+
+          - action: media_player.select_source
+            target:
+              entity_id: !input speakers
+            data:
+              source: Opt
+
+          - action: !input music_assistant_reset_script
+
+          - action: input_select.select_option
+            target:
+              entity_id: !input last_run_activity
+            data:
+              option: "watch"
+
+      # ------- Speakers moved to Wi-Fi, but last run wasn't "listen" -------
+      - conditions:
+          - condition: trigger
+            id: speakers_wifi
+          - condition: not
+            conditions:
+              - condition: state
+                entity_id: !input last_run_activity
+                state: "listen"
+        sequence:
+          - action: input_select.select_option
+            target:
+              entity_id: !input room_activity
+            data:
+              option: "listen"
+
+          - choose:
+              - conditions:
+                  - condition: state
+                    entity_id: !input tv_sensor
+                    state: "on"
+                sequence:
+                  - action: mqtt.publish
+                    data:
+                      topic: !input mqtt_topic_tx
+                      payload: macro:atv-off
+                      qos: "1"
+                      retain: false
+
+          - action: input_select.select_option
+            target:
+              entity_id: !input last_run_activity
+            data:
+              option: "listen"
