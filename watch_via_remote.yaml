@@ -74,7 +74,7 @@ action:
                 data:
                   topic: !input mqtt_topic_tx
                   payload: macro:atv-on
-                  qos: 1
+                  qos: "1"
                   retain: false
 
       - service: media_player.select_source
