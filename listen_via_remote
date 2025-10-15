@@ -1,0 +1,47 @@
+blueprint:
+  name: "Listen via Remote"
+  description: >
+    Plays a radio station using Music Assistant, and sends an MQTT command to turn off TV if it's on.
+  domain: script
+  input:
+    station:
+      name: Radio Station
+      description: Name of the radio station to play.
+      selector:
+        text:
+    radio_tuner_script:
+      name: Music Assistant Radio Tuner Script
+      description: Script entity that starts playing the selected radio station.
+      selector:
+        entity:
+          domain: script
+    tv_sensor:
+      name: TV Binary Sensor
+      description: Binary sensor representing TV on/off state.
+      selector:
+        entity:
+          domain: binary_sensor
+    room:
+      name: Room (used for MQTT topic)
+      description: Will be used to construct topic like `pihub/<room>/cmd`
+      selector:
+        text:
+
+sequence:
+  - service: !input radio_tuner_script
+    data:
+      station: !input station
+
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: !input tv_sensor
+            state: "on"
+        sequence:
+          - service: mqtt.publish
+            data:
+              qos: 1
+              retain: false
+              topic: >
+                {{ "pihub/" ~ (iif((room := iif((!input room) != "", !input room, "unknown")), room, "unknown")) ~ "/cmd" }}
+              payload: macro:atv-off
