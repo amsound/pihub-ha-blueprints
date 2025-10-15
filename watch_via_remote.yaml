@@ -41,6 +41,13 @@ blueprint:
       description: ""
       selector:
         text: {}
+        
+    music_assistant_reset_script:
+      name: Music Assistant Reset Script
+      description: ""
+      selector:
+        entity:
+          domain: script
 
     last_run_select:
       name: Last Run Activity
@@ -76,12 +83,14 @@ actions:
                   payload: macro:atv-on
                   qos: "1"
                   retain: false
+      - sequence:
+          - service: media_player.select_source
+            target:
+              entity_id: !input speakers
+            data:
+              source: Opt
 
-      - service: media_player.select_source
-        target:
-          entity_id: !input speakers
-        data:
-          source: Opt
+          - action: !input music_assistant_reset_script
 
   - service: input_select.select_option
     target:
