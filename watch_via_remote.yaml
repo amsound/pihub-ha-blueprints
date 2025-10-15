@@ -65,7 +65,7 @@ trigger:
 condition: []
 
 actions:
-  - service: input_select.select_option
+  - action: input_select.select_option
     target:
       entity_id: !input activity_select
     data:
@@ -78,14 +78,14 @@ actions:
                 entity_id: !input tv_sensor
                 state: "off"
             sequence:
-              - service: mqtt.publish
+              - action: mqtt.publish
                 data:
                   topic: !input mqtt_topic_tx
                   payload: macro:atv-on
                   qos: "1"
                   retain: false
       - sequence:
-          - service: media_player.select_source
+          - action: media_player.select_source
             target:
               entity_id: !input speakers
             data:
@@ -93,7 +93,7 @@ actions:
 
           - action: !input music_assistant_reset_script
 
-  - service: input_select.select_option
+  - action: input_select.select_option
     target:
       entity_id: !input last_run_select
     data:
