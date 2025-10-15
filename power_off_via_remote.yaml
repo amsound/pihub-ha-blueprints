@@ -1,0 +1,99 @@
+blueprint:
+  name: Power Off (via MQTT Activity)
+  description: >
+    When an MQTT message with payload "power_off" is received on a given topic,
+    this automation updates the activity input, powers off the TV if it's on, 
+    turns off the speakers, resets Music Assistant, and logs the activity.
+
+  domain: automation
+
+  input:
+    mqtt_topic_rx:
+      name: MQTT Topic (Trigger)
+      description: Full MQTT topic to listen on (e.g. pihub/kitchen/activity)
+      selector:
+        text:
+
+    room_activity:
+      name: Room Activity Input Select
+      description: Input select to set current room activity
+      selector:
+        entity:
+          domain: input_select
+
+    tv_sensor:
+      name: TV Sensor
+      description: Binary sensor that detects if the TV is on
+      selector:
+        entity:
+          domain: binary_sensor
+
+    mqtt_topic_tx:
+      name: MQTT Topic (Command)
+      description: Full MQTT topic to publish TV-off command to (e.g. pihub/kitchen/cmd)
+      selector:
+        text:
+
+    speakers:
+      name: Speakers
+      description: Media player entity for the speakers
+      selector:
+        entity:
+          domain: media_player
+
+    music_assistant_reset_script:
+      name: Music Assistant Reset Script
+      description: Script to reset Music Assistant
+      selector:
+        entity:
+          domain: script
+
+    last_run_activity:
+      name: Last Run Activity Input Select
+      description: Input select to record last run activity
+      selector:
+        entity:
+          domain: input_select
+
+trigger:
+  - platform: mqtt
+    topic: !input mqtt_topic_rx
+    payload: "power_off"
+
+condition: []
+
+action:
+  - service: input_select.select_option
+    target:
+      entity_id: !input room_activity
+    data:
+      option: "power_off"
+
+  - parallel:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: !input tv_sensor
+                state: "on"
+            sequence:
+              - service: mqtt.publish
+                data:
+                  topic: !input mqtt_topic_tx
+                  payload: macro:atv-off
+                  qos: 1
+                  retain: false
+
+      - sequence:
+          - service: media_player.turn_off
+            target:
+              entity_id: !input speakers
+
+          - service: !input music_assistant_reset_script
+
+  - service: input_select.select_option
+    target:
+      entity_id: !input last_run_activity
+    data:
+      option: "power_off"
+
+mode: single
