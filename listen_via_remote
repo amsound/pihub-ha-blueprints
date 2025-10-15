@@ -1,42 +1,39 @@
 blueprint:
   name: Listen (via MQTT Activity)
-  description: >
-    When an MQTT message with payload 'listen' is received on a given topic,
-    this automation starts a Music Assistant radio station. If the TV is on,
-    it sends an MQTT command to turn it off.
-
+  description: >-
+    Discreet remote control intent. Selects a radio station and switches off tv (if on).
   domain: automation
 
   input:
     mqtt_topic_rx:
-      name: MQTT Topic (Trigger)
-      description: Full MQTT topic to listen on (e.g. pihub/kitchen/activity)
+      name: MQTT Trigger Topic e.g. `pihub/kitchen/activity`
+      description: ""
       selector:
         text:
 
     radio_station:
-      name: Radio Station
-      description: Name of the station to play (e.g. BBC Radio 1)
+      name: Default Radio Station
+      description: ""
       selector:
         text:
 
     radio_tuner_script:
       name: Music Assistant Radio Tuner Script
-      description: The script to call with the radio station
+      description: ""
       selector:
         entity:
           domain: script
 
     tv_sensor:
       name: TV Sensor
-      description: Binary sensor that detects whether the TV is on
+      description: ""
       selector:
         entity:
           domain: binary_sensor
 
     mqtt_topic_tx:
-      name: MQTT Topic (Command)
-      description: Topic to send the TV-off command to (e.g. pihub/kitchen/cmd)
+      name: MQTT Command Topic e.g. `pihub/kitchen/cmd`
+      description: ""
       selector:
         text:
 
