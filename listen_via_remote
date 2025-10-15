@@ -1,48 +1,56 @@
 blueprint:
-  name: Listen (via Remote)
+  name: Listen (via MQTT Activity)
   description: >
-    Play a radio station via Music Assistant, and if the TV is on, send an MQTT command to turn it off.
+    When an MQTT message with payload 'listen' is received on a given topic,
+    this automation starts a Music Assistant radio station. If the TV is on,
+    it sends an MQTT command to turn it off.
+
   domain: automation
+
   input:
+    mqtt_topic_rx:
+      name: MQTT Topic (Trigger)
+      description: Full MQTT topic to listen on (e.g. pihub/kitchen/activity)
+      selector:
+        text:
+
     radio_station:
       name: Radio Station
-      description: Name of the station to play
+      description: Name of the station to play (e.g. BBC Radio 1)
       selector:
         text:
 
     radio_tuner_script:
-      name: Music Assistant Radio Tuner
-      description: Script that plays the radio station
+      name: Music Assistant Radio Tuner Script
+      description: The script to call with the radio station
       selector:
         entity:
           domain: script
 
     tv_sensor:
-      name: TV Binary Sensor
-      description: Binary sensor that tracks TV on/off state
+      name: TV Sensor
+      description: Binary sensor that detects whether the TV is on
       selector:
         entity:
           domain: binary_sensor
 
-    mqtt_room:
-      name: Room (for MQTT topic)
-      description: Will generate topic like 'pihub/ROOM/cmd'
+    mqtt_topic_tx:
+      name: MQTT Topic (Command)
+      description: Topic to send the TV-off command to (e.g. pihub/kitchen/cmd)
       selector:
         text:
 
-mode: single
+triggers:
+  - platform: mqtt
+    topic: !input mqtt_topic_rx
+    payload: "listen"
 
-variables:
-  mqtt_topic: >
-    {{ 'pihub/' ~ (mqtt_room | lower | replace(' ', '_')) ~ '/cmd' }}
+condition: []
 
-action:
-  - service: script.turn_on
-    target:
-      entity_id: !input radio_tuner_script
+actions:
+  - action: !input radio_tuner_script
     data:
-      variables:
-        station: !input radio_station
+      station: !input radio_station
 
   - choose:
       - conditions:
@@ -52,7 +60,9 @@ action:
         sequence:
           - service: mqtt.publish
             data:
-              topic: "{{ mqtt_topic }}"
+              topic: !input mqtt_topic_tx
               payload: macro:atv-off
               qos: 1
               retain: false
+
+mode: single
