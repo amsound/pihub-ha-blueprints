@@ -91,7 +91,7 @@ actions:
                 entity_id: !input tv_sensor
                 state: "on"
             sequence:
-              - service: mqtt.publish
+              - action: mqtt.publish
                 data:
                   topic: !input mqtt_topic_tx
                   payload: macro:atv-off
@@ -104,7 +104,7 @@ actions:
                 entity_id: !input speaker_wifi_sensor
                 state: "off"
             sequence:
-              - service: media_player.select_source
+              - action: media_player.select_source
                 target:
                   entity_id: !input speakers
                 data:
