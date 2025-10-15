@@ -1,65 +1,121 @@
 blueprint:
   name: Listen (via MQTT Activity)
-  description: >-
-    Discreet remote control intent. Selects a radio station and switches off tv (if on).
+  description: >
+    Triggers music playback and switches inputs when an MQTT message with
+    payload "listen" is received on a specified topic. Turns off TV, switches
+    speakers to Wi-Fi if needed, and starts Music Assistant.
+
   domain: automation
 
   input:
     mqtt_topic_rx:
-      name: MQTT Trigger Topic e.g. 'pihub/<room>/activity'
-      description: ""
+      name: MQTT Topic (Trigger)
+      description: Full MQTT topic to listen on (e.g. pihub/kitchen/activity)
       selector:
         text:
 
+    room_activity:
+      name: Room Activity Input Select
+      description: Input select to set current room activity (e.g. input_select.kitchen_activity)
+      selector:
+        entity:
+          domain: input_select
+
     radio_station:
-      name: Default Radio Station
-      description: ""
+      name: Radio Station
+      description: Name of the radio station to play (e.g. BBC Radio 1)
       selector:
         text:
 
     radio_tuner_script:
       name: Music Assistant Radio Tuner Script
-      description: ""
+      description: Script to call with the radio station
       selector:
         entity:
           domain: script
 
+    speakers:
+      name: Speakers
+      description: Media player entity for the speakers
+      selector:
+        entity:
+          domain: media_player
+
+    speaker_wifi_sensor:
+      name: Speaker Wi-Fi Sensor
+      description: Binary sensor to check if speakers are already set to Wi-Fi
+      selector:
+        entity:
+          domain: binary_sensor
+
     tv_sensor:
       name: TV Sensor
-      description: ""
+      description: Binary sensor to check if TV is on
       selector:
         entity:
           domain: binary_sensor
 
     mqtt_topic_tx:
-      name: MQTT Command Topic e.g. 'pihub/<room>/cmd'
-      description: ""
+      name: MQTT Topic (Command)
+      description: MQTT topic to publish command to (e.g. pihub/kitchen/cmd)
       selector:
         text:
 
-triggers:
+    last_run_activity:
+      name: Last Run Activity Input Select
+      description: Input select to store last run activity
+      selector:
+        entity:
+          domain: input_select
+
+trigger:
   - platform: mqtt
     topic: !input mqtt_topic_rx
     payload: "listen"
 
 condition: []
 
-actions:
-  - action: !input radio_tuner_script
+action:
+  - service: input_select.select_option
+    target:
+      entity_id: !input room_activity
     data:
-      station: !input radio_station
+      option: "listen"
 
-  - choose:
-      - conditions:
-          - condition: state
-            entity_id: !input tv_sensor
-            state: "on"
-        sequence:
-          - service: mqtt.publish
-            data:
-              topic: !input mqtt_topic_tx
-              payload: macro:atv-off
-              qos: 1
-              retain: false
+  - parallel:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: !input tv_sensor
+                state: "on"
+            sequence:
+              - service: mqtt.publish
+                data:
+                  topic: !input mqtt_topic_tx
+                  payload: macro:atv-off
+                  qos: 1
+                  retain: false
+
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: !input speaker_wifi_sensor
+                state: "off"
+            sequence:
+              - service: media_player.select_source
+                target:
+                  entity_id: !input speakers
+                data:
+                  source: Wifi
+
+      - service: !input radio_tuner_script
+        data:
+          station: !input radio_station
+
+  - service: input_select.select_option
+    target:
+      entity_id: !input last_run_activity
+    data:
+      option: "listen"
 
 mode: single
