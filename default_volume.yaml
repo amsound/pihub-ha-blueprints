@@ -51,7 +51,7 @@ variables:
   listen_volume_value: !input listen_volume
   current_source: "{{ state_attr(speaker, 'source') }}"
 
-actionss:
+actions:
   - delay: "00:00:01"
   - choose:
       # Exact, case-sensitive: Opt → Watch volume
