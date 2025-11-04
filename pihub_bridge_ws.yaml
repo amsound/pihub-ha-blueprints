@@ -1,0 +1,140 @@
+blueprint:
+  name: PiHub — bridge intents from remote
+  description: |
+    Listens for 'pihub.cmd' events (dest='ha') and bridges intents to HA. Entities/scripts are hard-coded.
+  domain: automation
+  input: {}
+
+# ---- Trigger ---------------------------------------------------------------
+triggers:
+  - platform: event
+    event_type: pihub.cmd
+
+# ---- Global guard ----------------------------------------------------------
+conditions:
+  - condition: template
+    value_template: "{{ trigger.event.data.dest == 'ha' }}"
+
+# ---- Actions ---------------------------------------------------------------
+actions:
+  - choose:
+      # Activity changes -> call hard-coded scripts
+      - conditions:
+          - condition: template
+            value_template: "{{ text in ['watch','listen','power_off'] }}"
+        sequence:
+          - action: |-
+              {{ {'watch': watch_script,
+                  'listen': listen_script,
+                  'power_off': power_off_script}[text] }}
+            data: {}
+
+      # Volume up/down
+      - conditions:
+          - condition: template
+            value_template: "{{ text == 'volume_up' }}"
+        sequence:
+          - target:
+              entity_id: "{{ speakers }}"
+            action: media_player.volume_up
+
+      - conditions:
+          - condition: template
+            value_template: "{{ text == 'volume_down' }}"
+        sequence:
+          - target:
+              entity_id: "{{ speakers }}"
+            action: media_player.volume_down
+
+      # Mute toggle
+      - conditions:
+          - condition: template
+            value_template: "{{ text == 'mute_toggle' }}"
+        sequence:
+          - action: "{{ speaker_mute_script }}"
+            data: {}
+
+      # Transport controls → prefer speakers_ma if it's on, else speakers
+      - conditions:
+          - condition: template
+            value_template: "{{ text == 'media_prev' }}"
+        sequence:
+          - target:
+              entity_id: "{{ media_target }}"
+            action: media_player.media_previous_track
+            data: {}
+
+      - conditions:
+          - condition: template
+            value_template: "{{ text == 'media_next' }}"
+        sequence:
+          - target:
+              entity_id: "{{ media_target }}"
+            action: media_player.media_next_track
+            data: {}
+
+      - conditions:
+          - condition: template
+            value_template: "{{ text == 'media_play_pause' }}"
+        sequence:
+          - target:
+              entity_id: "{{ media_target }}"
+            action: media_player.media_play_pause
+
+      - conditions:
+          - condition: template
+            value_template: "{{ text == 'media_stop' }}"
+        sequence:
+          - target:
+              entity_id: "{{ media_target }}"
+            action: media_player.media_stop
+
+      # Radio: single entry point (either tune_action OR station)
+      - conditions:
+          - condition: template
+            value_template: >
+              {{ trigger.event.data.text == 'radio'
+                 and (trigger.event.data.tune_action is defined
+                      or trigger.event.data.station is defined) }}
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.tune_action is defined }}"
+                sequence:
+                  - action: "{{ radio_script }}"
+                    data:
+                      tune_action: "{{ trigger.event.data.tune_action }}"
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.station is defined }}"
+                sequence:
+                  - action: "{{ radio_script }}"
+                    data:
+                      station: "{{ trigger.event.data.station }}"
+            default: []
+    default: []
+
+mode: parallel
+
+# ---- Hard-coded variables (no inputs) --------------------------------------
+variables:
+  # Entities/scripts (edit here to change behavior)
+  speakers: media_player.speakers
+  speaker_ma: media_player.speakers_ma
+  speaker_mute_script: script.speaker_toggle_mute_room_independent
+  radio_script: script.music_assistant_radio_tuner_room_independent
+  watch_script: script.room_watch
+  listen_script: script.room_listen
+  power_off_script: script.room_power_off
+
+  # Convenience alias for event text
+  text: "{{ trigger.event.data.text | default('') }}"
+
+  # Prefer MA player if it's 'on'; otherwise fall back to main speakers
+  media_target: >-
+    {% if is_state(speaker_ma, 'on') %}
+      {{ speaker_ma }}
+    {% else %}
+      {{ speakers }}
+    {% endif %}
