@@ -3,7 +3,6 @@ blueprint:
   description: ""
   domain: script
 
-input: {}
 
 mode: single
 
