@@ -7,7 +7,7 @@ blueprint:
 fields:
   override:
     name: Override
-    description: If true, only set limited variables (TV off + selects)
+    description: Only set limited variables
     default: false
     selector:
       boolean: {}
