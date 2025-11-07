@@ -1,37 +1,48 @@
 blueprint:
-  name: Radio Tuner - Music Assistant
+  name: Radio Tuner - Music Assistant (Fixed)
   domain: script
   description: |
     Tune Music Assistant radio stations by name or navigate next/prev with wrap-around behavior.
-    - Stores the current station position in an input_number helper (Use -1 as a neutral/off state)
+    - Stores the current station position in an input_number helper (use -1 as a neutral/off state)
     - Accepts a comma-separated list of stations — custom radio dial
     - Supports two optional inputs for navigation:
       - station: Tune directly by name
       - tune_action: Use "next" or "prev" to move along the dial (with wrap-around)
+    Hardcoded entities:
+      - media_player: media_player.speakers_ma
+      - index helper: input_number.radio_station_index
 
-    station_list_string:
-      name: List of Radio Stations (comma-separated)
-      description: "e.g: Absolute Radio, BBC Radio 1, BBC Radio 2, BBC Radio 3, BBC Radio 3 Unwind, BBC Radio 4, BBC Radio 4 Extra, BBC Radio 6 Music, BBC Radio Sussex, Capital London, Classic FM, FIP, Heart, KCRW Eclectic 24, KCRW Live, Magic Radio, Radio X, Virgin Radio"
-      default: ""
-
-    station:
-      name: Station Name (leave blank - used by script)
-      description: ""
-      default: ""
-    tune_action:
-      name: Tune Action (leave blank - used by script)
-      description: ""
-      default: ""
+input:
+  station_list_string:
+    name: List of Radio Stations (comma-separated)
+    description: "e.g.: Absolute Radio, BBC Radio 1, BBC Radio 2, Classic FM, etc."
+    default: ""
+  station:
+    name: Station Name (optional)
+    description: "Exact match to one item in the list."
+    default: ""
+  tune_action:
+    name: Tune Action (optional)
+    description: "Use 'next' or 'prev' to move along the dial."
+    default: ""
 
 mode: single
+
 sequence:
   - variables:
       station_list_raw: !input station_list_string
       station_list: "{{ station_list_raw.split(',') | map('trim') | list }}"
       index_helper_entity: input_number.radio_station_index
       media_player_entity: media_player.speakers_ma
-      index: "{{ states(index_helper_entity) | int }}"
+      index: "{{ states(index_helper_entity) | int(-1) }}"
       total_stations: "{{ station_list | length }}"
+
+  # Stop early if list is empty
+  - choose:
+      - conditions: "{{ total_stations == 0 }}"
+        sequence:
+          - stop: "Station list is empty."
+
   - choose:
       - conditions: "{{ station != '' and station in station_list }}"
         sequence:
@@ -57,16 +68,19 @@ sequence:
                 {% endif %}
     default:
       - stop: "No valid station or action provided."
+
   - service: input_number.set_value
     target:
-      entity_id: "{{ index_helper_entity }}"
+      entity_id: input_number.radio_station_index
     data:
       value: "{{ new_index }}"
+
   - variables:
       selected_station: "{{ station_list[new_index] }}"
+
   - service: music_assistant.play_media
+    target:
+      entity_id: media_player.speakers_ma
     data:
       media_id: "{{ selected_station }}"
       media_type: radio
-    target:
-      entity_id: !input media_player
