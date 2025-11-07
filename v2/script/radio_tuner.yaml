@@ -1,9 +1,9 @@
 blueprint:
-  name: Radio Tuner - Music Assistant (Fixed)
+  name: Radio Tuner
   domain: script
   description: |
     Tune Music Assistant radio stations by name or navigate next/prev with wrap-around behavior.
-    - Stores the current station position in an input_number helper (use -1 as a neutral/off state)
+    - Stores the current station position in an input_number helper (Use -1 as a neutral/off state)
     - Accepts a comma-separated list of stations — custom radio dial
     - Supports two optional inputs for navigation:
       - station: Tune directly by name
@@ -16,11 +16,10 @@ input:
     default: ""
   station:
     name: Station Name (leave blank - used by script)
-    description: ""
     default: ""
   tune_action:
     name: Tune Action (leave blank - used by script)
-    description: ""
+    description: Use "next" or "prev".
     default: ""
 
 mode: single
@@ -34,12 +33,10 @@ sequence:
       index: "{{ states(index_helper_entity) | int(-1) }}"
       total_stations: "{{ station_list | length }}"
 
-  # Stop early if list is empty
   - choose:
       - conditions: "{{ total_stations == 0 }}"
         sequence:
           - stop: "Station list is empty."
-
   - choose:
       - conditions: "{{ station != '' and station in station_list }}"
         sequence:
