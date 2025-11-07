@@ -1,6 +1,6 @@
 blueprint:
-  name: Mute Toggle (Fixed Speakers)
-  description: "Speaker Mute Toggle"
+  name: Mute Toggle
+  description: ""
   domain: script
 
 input: {}
