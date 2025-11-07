@@ -1,5 +1,5 @@
 blueprint:
-  name: Room — WebSocket Bridge
+  name: Room - WebSocket Bridge
   description: |
     Hardcoded automation blueprint for PiHub WebSocket events.
   domain: automation
