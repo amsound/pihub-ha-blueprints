@@ -4,9 +4,6 @@ blueprint:
     Hardcoded automation: routes PiHub watch/listen/power_off and device overrides.
   domain: automation
 
-# No inputs at all
-input: {}
-
 # --- Automation body ---
 trigger:
   # TV turned on → watch
