@@ -1,6 +1,6 @@
 blueprint:
   name: Room - Listen
-  description: >
+  description: |
     Hardcoded script blueprint for "listen".
   domain: script
 
