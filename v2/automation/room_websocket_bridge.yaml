@@ -4,8 +4,6 @@ blueprint:
     Hardcoded automation blueprint for PiHub WebSocket events.
   domain: automation
 
-input: {}
-
 trigger:
   - platform: event
     event_type: pihub.cmd
