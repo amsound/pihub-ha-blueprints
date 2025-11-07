@@ -78,4 +78,3 @@ actions:
                   - action: script.radio_tuner
                     data:
                       station: "{{ trigger.event.data.station }}"
-        default: []
