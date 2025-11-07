@@ -4,8 +4,6 @@ blueprint:
     Hardcoded script blueprint for "power_off".
   domain: script
 
-input: {}
-
 sequence:
   - action: input_select.select_option
     metadata: {}
