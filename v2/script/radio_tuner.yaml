@@ -14,15 +14,14 @@ input:
     name: List of Radio Stations (comma-separated)
     description: "e.g: Absolute Radio, BBC Radio 1, BBC Radio 2, BBC Radio 3, BBC Radio 3 Unwind, BBC Radio 4, BBC Radio 4 Extra, BBC Radio 6 Music, BBC Radio Sussex, Capital London, Classic FM, FIP, Heart, KCRW Eclectic 24, KCRW Live, Magic Radio, Radio X, Virgin Radio"
     default: ""
-
- station:
-   name: Station Name (leave blank - used by script)
-   description: ""
-   default: ""
- tune_action:
-   name: Tune Action (leave blank - used by script)
-   description: ""
-   default: ""
+  station:
+    name: Station Name (leave blank - used by script)
+    description: ""
+    default: ""
+  tune_action:
+    name: Tune Action (leave blank - used by script)
+    description: ""
+    default: ""
 
 mode: single
 
