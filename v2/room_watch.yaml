@@ -1,6 +1,7 @@
 blueprint:
   name: Room - Watch
-  description: "Hardcoded script blueprint for watch activity. No inputs."
+  description: |
+    Hardcoded script blueprint for "watch".
   domain: script
 
 input: {}
