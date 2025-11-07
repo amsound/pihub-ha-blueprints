@@ -12,7 +12,6 @@ conditions:
   - condition: template
     value_template: "{{ trigger.event.data.dest == 'ha' }}"
 
-# Only compute media_target; everything else inline/hardcoded
 variables:
   media_target: >-
     {% if is_state('media_player.speakers_ma', 'on') %}
