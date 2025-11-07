@@ -1,5 +1,5 @@
 blueprint:
-  name: Reset Music Assistant
+  name: Reset MA
   description: "Hardcoded reset for MA + radio index. No inputs."
   domain: script
 
