@@ -1,0 +1,93 @@
+blueprint:
+  name: Room — WebSocket Bridge
+  description: |
+    Hardcoded automation blueprint for PiHub WebSocket events.
+  domain: automation
+
+input: {}
+
+trigger:
+  - platform: event
+    event_type: pihub.cmd
+
+condition:
+  - condition: template
+    value_template: "{{ trigger.event.data.dest == 'ha' }}"
+
+# Only compute media_target; everything else inline/hardcoded
+variables:
+  media_target: >-
+    {% if is_state('media_player.speakers_ma', 'on') %}
+      media_player.speakers_ma
+    {% else %}
+      media_player.speakers
+    {% endif %}
+
+mode: parallel
+
+action:
+  - choose:
+      # -------- Volume up --------
+      - conditions: "{{ (trigger.event.data.text | default('')) == 'volume_up' }}"
+        sequence:
+          - action: media_player.volume_up
+            target:
+              entity_id: media_player.speakers
+
+      # -------- Volume down --------
+      - conditions: "{{ (trigger.event.data.text | default('')) == 'volume_down' }}"
+        sequence:
+          - action: media_player.volume_down
+            target:
+              entity_id: media_player.speakers
+
+      # -------- Mute toggle (inline script call) --------
+      - conditions: "{{ (trigger.event.data.text | default('')) == 'mute_toggle' }}"
+        sequence:
+          - action: script.mute_toggle
+
+      # -------- Previous --------
+      - conditions: "{{ (trigger.event.data.text | default('')) == 'media_prev' }}"
+        sequence:
+          - action: media_player.media_previous_track
+            target:
+              entity_id: "{{ media_target }}"
+
+      # -------- Next --------
+      - conditions: "{{ (trigger.event.data.text | default('')) == 'media_next' }}"
+        sequence:
+          - action: media_player.media_next_track
+            target:
+              entity_id: "{{ media_target }}"
+
+      # -------- Play/Pause --------
+      - conditions: "{{ (trigger.event.data.text | default('')) == 'media_play_pause' }}"
+        sequence:
+          - action: media_player.media_play_pause
+            target:
+              entity_id: "{{ media_target }}"
+
+      # -------- Stop --------
+      - conditions: "{{ (trigger.event.data.text | default('')) == 'media_stop' }}"
+        sequence:
+          - action: media_player.media_stop
+            target:
+              entity_id: "{{ media_target }}"
+
+      # -------- Radio (station or tune_action) --------
+      - conditions: >
+          {{ trigger.event.data.text == 'radio' and
+             (trigger.event.data.tune_action is defined or trigger.event.data.station is defined) }}
+        sequence:
+          - choose:
+              - conditions: "{{ trigger.event.data.tune_action is defined }}"
+                sequence:
+                  - action: script.radio_tuner
+                    data:
+                      tune_action: "{{ trigger.event.data.tune_action }}"
+              - conditions: "{{ trigger.event.data.station is defined }}"
+                sequence:
+                  - action: script.radio_tuner
+                    data:
+                      station: "{{ trigger.event.data.station }}"
+        default: []
