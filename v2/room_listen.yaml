@@ -1,0 +1,88 @@
+blueprint:
+  name: Room - Listen
+  description: >
+    Hardcoded script blueprint for "listen".
+  domain: script
+
+# No blueprint inputs on purpose
+input: {}
+
+# Runtime call fields (same as your script)
+fields:
+  override:
+    name: Override
+    description: If true, only set limited variables (TV off + selects)
+    default: false
+    selector:
+      boolean: {}
+
+sequence:
+  - action: input_select.select_option
+    data:
+      option: listen
+    target:
+      entity_id: input_select.activity
+
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ override | bool }}"
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: state
+                    entity_id: media_player.tv
+                    state: "on"
+                sequence:
+                  - event: pihub.cmd
+                    event_data:
+                      dest: pi
+                      text: macro
+                      name: power_off
+
+          - action: input_select.select_option
+            data:
+              option: listen
+            target:
+              entity_id: input_select.last_run_activity
+
+          - stop: override path complete
+    alias: If Override True
+
+  - action: script.radio_tuner
+    data:
+      station: Classic FM
+
+  - choose:
+      - conditions:
+          - condition: not
+            conditions:
+              - condition: state
+                entity_id: media_player.speakers
+                state: Wifi
+                attribute: Source
+        sequence:
+          - action: media_player.select_source
+            data:
+              source: Wifi
+            target:
+              entity_id: media_player.speakers
+
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: media_player.tv
+            state: "on"
+        sequence:
+          - event: pihub.cmd
+            event_data:
+              dest: pi
+              text: macro
+              name: power_off
+
+  - action: input_select.select_option
+    data:
+      option: listen
+    target:
+      entity_id:
+        - input_select.last_run_activity
