@@ -4,10 +4,6 @@ blueprint:
     Hardcoded script blueprint for "listen".
   domain: script
 
-# No blueprint inputs on purpose
-input: {}
-
-# Runtime call fields (same as your script)
 fields:
   override:
     name: Override
