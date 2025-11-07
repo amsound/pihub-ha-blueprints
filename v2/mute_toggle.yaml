@@ -1,0 +1,17 @@
+blueprint:
+  name: Mute Toggle (Fixed Speakers)
+  description: "Speaker Mute Toggle"
+  domain: script
+
+input: {}
+
+mode: single
+
+sequence:
+  - alias: Toggle Mute State
+    action: media_player.volume_mute
+    target:
+      entity_id: media_player.speakers
+    data:
+      is_volume_muted: >
+        {{ not state_attr('media_player.speakers', 'is_volume_muted') }}
