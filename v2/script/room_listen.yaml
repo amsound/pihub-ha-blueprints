@@ -22,7 +22,7 @@ sequence:
   - choose:
       - conditions:
           - condition: template
-            value_template: "{{ override | bool }}"
+            value_template: "{{ (override | default(false)) | bool }}"
         sequence:
           - choose:
               - conditions:
