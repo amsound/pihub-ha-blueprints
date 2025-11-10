@@ -19,7 +19,7 @@ blueprint:
       default: ""
     tune_action:
       name: Tune Action (leave blank - used by script)
-      description: Use "next" or "prev".
+      description: ""
       default: ""
 
 mode: single
