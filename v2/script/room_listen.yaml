@@ -4,6 +4,36 @@ blueprint:
     Hardcoded script blueprint for "listen".
   domain: script
 
+  input:
+    radio_input:
+      name: Radio Station
+      description: ""
+      select:
+        custom_value: true
+        options:
+         - Absolute Radio
+         - BBC Radio 1
+         - BBC Radio 2
+         - BBC Radio 3
+         - BBC Radio 3 Unwind
+         - BBC Radio 4
+         - BBC Radio 4 Extra
+         - BBC Radio 6 Music
+         - BBC Radio Sussex
+         - Capital London
+         - Classic FM
+         - FIP
+         - Heart
+         - KCRW Eclectic 24
+         - KCRW Live
+         - Magic Radio
+         - Naim Classical
+         - Naim Radio
+         - Radio Paradise
+         - Radio Raradise: Mellow Mix
+         - Radio X
+         - Virgin Radio
+
 fields:
   override:
     name: Override
@@ -47,7 +77,7 @@ sequence:
 
   - action: script.radio_tuner
     data:
-      station: Classic FM
+      station: !input radio_input
 
   - choose:
       - conditions:
