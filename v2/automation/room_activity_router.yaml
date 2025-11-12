@@ -5,27 +5,26 @@ blueprint:
   domain: automation
 
 # --- Automation body ---
-trigger:
-  # TV turned on → watch
-  - platform: state
-    entity_id: media_player.tv
+triggers:
+  - entity_id: media_player.tv
     to: "on"
     for: "00:00:02"
     id: TV
-
-  # Speakers source changed to Wifi → listen (override)
-  - platform: state
-    entity_id:
-      - media_player.speakers
+    trigger: state
+  - entity_id: media_player.speakers
     attribute: source
     to:
       - Wifi
     id: Speakers
-
-  # PiHub event → bridge to room scripts
-  - platform: event
-    event_type: pihub.cmd
+    trigger: state
+  - trigger: state
+    entity_id: media_player.speakers_ma
+    id: Speakers
+    from:
+      - "off"
+  - event_type: pihub.cmd
     id: PiHub
+    trigger: event
 
 condition: []
 
