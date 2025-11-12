@@ -14,7 +14,7 @@ conditions:
 
 variables:
   media_target: >-
-    {% if is_state('media_player.speakers_ma', 'on') %}
+    {% if not is_state('media_player.speakers_ma', 'off') %}
       media_player.speakers_ma
     {% else %}
       media_player.speakers
